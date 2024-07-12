@@ -152,6 +152,86 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-stackplz-trace" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2024/07/12/stackplz-trace/">stackplz_trace</a>
+    </h1>
+  
+
+        
+        <a href="/2024/07/12/stackplz-trace/" class="archive-article-date">
+  	<time datetime="2024-07-12T06:31:11.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2024-07-12</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="使用-stackplz-过anti-frida"><a href="#使用-stackplz-过anti-frida" class="headerlink" title="使用 stackplz 过anti-frida"></a>使用 stackplz 过anti-frida</h2><h4 id="一般检测frida-比较常用的一个函数是-strstr-这个函数类似于-isSubString-判断子串"><a href="#一般检测frida-比较常用的一个函数是-strstr-这个函数类似于-isSubString-判断子串" class="headerlink" title="一般检测frida 比较常用的一个函数是 strstr. 这个函数类似于 isSubString. 判断子串"></a>一般检测frida 比较常用的一个函数是 strstr. 这个函数类似于 isSubString. 判断子串</h4><h4 id="我们使用-stackplz-hook-strstr-看看是谁在调用strstr"><a href="#我们使用-stackplz-hook-strstr-看看是谁在调用strstr" class="headerlink" title="我们使用 stackplz hook strstr 看看是谁在调用strstr"></a>我们使用 stackplz hook strstr 看看是谁在调用strstr</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./stackplz -n tv.danmaku.bili -l /apex/com.android.runtime/lib64/bionic/libc.so -w strstr --stack</span><br></pre></td></tr></table></figure>
+
+<h4 id="执行结果如下"><a href="#执行结果如下" class="headerlink" title="执行结果如下"></a>执行结果如下</h4><p><img src="/images/img_2.png" alt="img_1.png"></p>
+<h4 id="看看strstr的参数-到底是不是针对一些环境的检测"><a href="#看看strstr的参数-到底是不是针对一些环境的检测" class="headerlink" title="看看strstr的参数, 到底是不是针对一些环境的检测"></a>看看strstr的参数, 到底是不是针对一些环境的检测</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/stackplz -n tv.danmaku.bili -l /apex/com.android.runtime/lib64/bionic/libc.so -w strstr[str:x0,str:x1]  -o tmp.log</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="结果如下"><a href="#结果如下" class="headerlink" title="结果如下"></a>结果如下</h4><p><img src="/images/img_3.png" alt="img_1.png"></p>
+<h4 id="google-一搜"><a href="#google-一搜" class="headerlink" title="google 一搜"></a>google 一搜</h4><p><img src="/images/img_4.png" alt="img_1.png"></p>
+<h4 id="大概率就是-libmxxxoxxdsec-so-在检测frida"><a href="#大概率就是-libmxxxoxxdsec-so-在检测frida" class="headerlink" title="大概率就是 libmxxxoxxdsec.so 在检测frida"></a>大概率就是 libmxxxoxxdsec.so 在检测frida</h4><h4 id="从hook-strstr的调用堆栈里我们可以看到是从-thread-start-开始的。-所以我们hook-thread-create-看看-创建线程比较早，所以先关掉app-执行命令后再打开app"><a href="#从hook-strstr的调用堆栈里我们可以看到是从-thread-start-开始的。-所以我们hook-thread-create-看看-创建线程比较早，所以先关掉app-执行命令后再打开app" class="headerlink" title="从hook strstr的调用堆栈里我们可以看到是从 thread_start 开始的。 所以我们hook thread_create 看看, 创建线程比较早，所以先关掉app, 执行命令后再打开app"></a>从hook strstr的调用堆栈里我们可以看到是从 thread_start 开始的。 所以我们hook thread_create 看看, 创建线程比较早，所以先关掉app, 执行命令后再打开app</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./stackplz -n tv.danmaku.bili -l /apex/com.android.runtime/lib64/bionic/libc.so -w pthread_create --stack -o tmp.log</span><br></pre></td></tr></table></figure>
+
+<h4 id="可以看到结果-有13处"><a href="#可以看到结果-有13处" class="headerlink" title="可以看到结果, 有13处"></a>可以看到结果, 有13处</h4><p><img src="/images/img_5.png" alt="img_1.png"></p>
+<h4 id="ida打开-看看-0x1d304"><a href="#ida打开-看看-0x1d304" class="headerlink" title="ida打开 看看 0x1d304"></a>ida打开 看看 0x1d304</h4><p><img src="/images/img_6.png" alt="img_1.png"></p>
+<h4 id="F5-看看"><a href="#F5-看看" class="headerlink" title="F5 看看"></a>F5 看看</h4><p><img src="/images/img_7.png" alt="img_1.png"></p>
+<p>这里很像是在创建线程。 我们试试patch, 强行让它不创建。 把 BLR X19 指令改为 nop. 在此之前还有一个问题， patch后会不会崩溃？<br>arm64 函数调用约定 返回值给x0, 我们看看后续有没有用到x0. 如果没用到我们可以这么改, 用到了程序可能就会崩溃</p>
+<h4 id="看汇编"><a href="#看汇编" class="headerlink" title="看汇编"></a>看汇编</h4><p><img src="/images/img_8.png" alt="img_1.png"></p>
+<h4 id="发现并没有用到返回值。-所以我们打开-https-armconverter-com"><a href="#发现并没有用到返回值。-所以我们打开-https-armconverter-com" class="headerlink" title="发现并没有用到返回值。 所以我们打开 https://armconverter.com/"></a>发现并没有用到返回值。 所以我们打开 <a target="_blank" rel="noopener" href="https://armconverter.com/">https://armconverter.com/</a></h4><p>看看nop 对应的机器码</p>
+<p><img src="/images/img_9.png" alt="img_1.png"></p>
+<p>用 010editor 把 BL X19 对应的机器码全部改为 1F2003D5</p>
+<h4 id="我一共patch了三处-然后把patch后的-so文件-push-到-data-app-1m1hzMqd9svUirtnyTGHvA-tv-xxxxx-xxxx-rMRttoSdjUufKzwDHC3FtQ-lib-arm64"><a href="#我一共patch了三处-然后把patch后的-so文件-push-到-data-app-1m1hzMqd9svUirtnyTGHvA-tv-xxxxx-xxxx-rMRttoSdjUufKzwDHC3FtQ-lib-arm64" class="headerlink" title="我一共patch了三处. 然后把patch后的 so文件 push 到 &#x2F;data&#x2F;app&#x2F;~~1m1hzMqd9svUirtnyTGHvA&#x3D;&#x3D;&#x2F;tv.xxxxx.xxxx-rMRttoSdjUufKzwDHC3FtQ&#x3D;&#x3D;&#x2F;lib&#x2F;arm64&#x2F;"></a>我一共patch了三处. 然后把patch后的 so文件 push 到 &#x2F;data&#x2F;app&#x2F;~~1m1hzMqd9svUirtnyTGHvA&#x3D;&#x3D;&#x2F;tv.xxxxx.xxxx-rMRttoSdjUufKzwDHC3FtQ&#x3D;&#x3D;&#x2F;lib&#x2F;arm64&#x2F;</h4><h4 id="然后frida-打开还是崩溃-发现app-又用了其他另外一个地方的-sec-so文件-把-so文件复制到两个目录下以后。发现frida-可以成功附加-最好改一下so文件的权限为-755-跟原先一致"><a href="#然后frida-打开还是崩溃-发现app-又用了其他另外一个地方的-sec-so文件-把-so文件复制到两个目录下以后。发现frida-可以成功附加-最好改一下so文件的权限为-755-跟原先一致" class="headerlink" title="然后frida 打开还是崩溃. 发现app 又用了其他另外一个地方的 sec.so文件. 把 so文件复制到两个目录下以后。发现frida 可以成功附加.  最好改一下so文件的权限为 755. 跟原先一致"></a>然后frida 打开还是崩溃. 发现app 又用了其他另外一个地方的 sec.so文件. 把 so文件复制到两个目录下以后。发现frida 可以成功附加.  最好改一下so文件的权限为 755. 跟原先一致</h4>
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2024/07/12/stackplz-trace/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-hello-world" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
