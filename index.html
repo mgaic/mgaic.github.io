@@ -146,6 +146,68 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/07/15/%E5%9F%BA%E4%BA%8Eebpf%E6%8A%93%E5%8C%85/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/07/15/%E5%9F%BA%E4%BA%8Eebpf%E6%8A%93%E5%8C%85/" class="post-title-link" itemprop="url">ecapture 基于ebpf抓包</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2024-07-15 15:30:53 / Modified: 15:37:42" itemprop="dateCreated datePublished" datetime="2024-07-15T15:30:53+08:00">2024-07-15</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="使用ecapture-抓包某物app-亲测可行"><a href="#使用ecapture-抓包某物app-亲测可行" class="headerlink" title="使用ecapture 抓包某物app, 亲测可行"></a>使用ecapture 抓包某物app, 亲测可行</h2><h4 id="ecapture-版本-0-8-3-手机-红米note-12t-pro-内核版本-5-10-android版本-android-13"><a href="#ecapture-版本-0-8-3-手机-红米note-12t-pro-内核版本-5-10-android版本-android-13" class="headerlink" title="ecapture 版本 0.8.3, 手机 红米note 12t pro, 内核版本 5.10. android版本 android 13"></a>ecapture 版本 0.8.3, 手机 红米note 12t pro, 内核版本 5.10. android版本 android 13</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">adb push ecapture /data/loca.tmp</span><br><span class="line">chmod +x ecapture</span><br><span class="line">./ecapture tls</span><br></pre></td></tr></table></figure>
+
+<h4 id="效果图"><a href="#效果图" class="headerlink" title="效果图"></a>效果图</h4><p>可以看到请求 响应都在里面了</p>
+<p><img src="/images/img_10.png" alt="img_1.png"></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="http://example.com/2024/07/12/stackplz-trace/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -360,7 +422,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-count">3</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
