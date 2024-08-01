@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="1234567891011121314151617181920212223242526272829#include &lt;jni.h&gt;#include &lt;string&gt;#include &lt;stdio.h&gt;#include &lt;string.h&gt;void get_sign(const char *str);extern &quot;C&quot; JNIEX">
+<meta property="og:type" content="article">
+<meta property="og:title" content="stackplz hook art">
+<meta property="og:url" content="http://example.com/2024/07/17/trace%E5%A4%A7%E5%85%A8/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="1234567891011121314151617181920212223242526272829#include &lt;jni.h&gt;#include &lt;string&gt;#include &lt;stdio.h&gt;#include &lt;string.h&gt;void get_sign(const char *str);extern &quot;C&quot; JNIEX">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/img_21.png">
+<meta property="og:image" content="http://example.com/images/img_22.png">
+<meta property="og:image" content="http://example.com/images/img_23.png">
+<meta property="og:image" content="http://example.com/images/img_24.png">
+<meta property="og:image" content="http://example.com/images/img_25.png">
+<meta property="og:image" content="http://example.com/images/img_26.png">
+<meta property="og:image" content="http://example.com/images/img_27.png">
+<meta property="article:published_time" content="2024-07-17T03:44:00.000Z">
+<meta property="article:modified_time" content="2024-07-17T07:29:31.341Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/img_21.png">
+
+<link rel="canonical" href="http://example.com/2024/07/17/trace%E5%A4%A7%E5%85%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>stackplz hook art | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/07/17/trace%E5%A4%A7%E5%85%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          stackplz hook art
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2024-07-17 11:44:00 / Modified: 15:29:31" itemprop="dateCreated datePublished" datetime="2024-07-17T11:44:00+08:00">2024-07-17</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id=""><a href="#" class="headerlink" title=""></a></h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">include &lt;jni.h&gt;</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">include &lt;string&gt;</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">include &lt;stdio.h&gt;</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">include &lt;string.h&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">void get_sign(const char *str);</span><br><span class="line"></span><br><span class="line">extern &quot;C&quot; JNIEXPORT jstring JNICALL</span><br><span class="line">Java_com_zj_my_1md5_MainActivity_stringFromJNI(</span><br><span class="line">        JNIEnv* env,</span><br><span class="line">        jobject /* this */, jstring url) &#123;</span><br><span class="line">    std::string hello = env-&gt;GetStringUTFChars(url, 0);</span><br><span class="line">    hello = hello + &quot;1&quot;;</span><br><span class="line">    get_sign(hello.c_str());</span><br><span class="line"></span><br><span class="line">//    return env-&gt;NewStringUTF(hello.c_str());</span><br><span class="line">    return env-&gt;NewStringUTF(hello.c_str());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">void get_sign(const char *original) &#123;</span><br><span class="line">    char buffer[50]; // 假设最大长度为 50</span><br><span class="line">    strncpy(buffer, original, sizeof(buffer));</span><br><span class="line">    strcat(buffer, &quot; Additional &quot;);</span><br><span class="line">    printf(&quot;Modified string: %s\n&quot;, buffer);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="上面是我自己写的jni实现"><a href="#上面是我自己写的jni实现" class="headerlink" title="上面是我自己写的jni实现."></a>上面是我自己写的jni实现.</h4><h4 id="stackplz-hook-NewStringUTF-打印堆栈"><a href="#stackplz-hook-NewStringUTF-打印堆栈" class="headerlink" title="stackplz hook NewStringUTF 打印堆栈"></a>stackplz hook NewStringUTF 打印堆栈</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./stackplz -n com.zj.my_md5 -l /apex/com.android.art/lib64/libart.so -w _ZN3art3JNIILb1EE17GetStringUTFCharsEP7_JNIEnvP8_jstringPh[str] --stack</span><br></pre></td></tr></table></figure>
+
+<h4 id="结果如下-可以看到调用堆栈已经打印出来了"><a href="#结果如下-可以看到调用堆栈已经打印出来了" class="headerlink" title="结果如下, 可以看到调用堆栈已经打印出来了."></a>结果如下, 可以看到调用堆栈已经打印出来了.</h4><p><img src="/images/img_21.png" alt="img_1.png"></p>
+<h4 id="hook-一下GetStringUTFChars-看看入参"><a href="#hook-一下GetStringUTFChars-看看入参" class="headerlink" title="hook 一下GetStringUTFChars 看看入参?"></a>hook 一下GetStringUTFChars 看看入参?</h4><h4 id="先查看一下导出函数地址"><a href="#先查看一下导出函数地址" class="headerlink" title="先查看一下导出函数地址"></a>先查看一下导出函数地址</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./stackplz -n com.zj.my_md5 -l /apex/com.android.art/lib64/libart.so -w GetStringUTFChars --dumpret</span><br></pre></td></tr></table></figure>
+
+<h4 id="执行结果如下"><a href="#执行结果如下" class="headerlink" title="执行结果如下"></a>执行结果如下</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">findBTFAssets btf_file=a12-5.10-arm64_min.btf</span><br><span class="line">[*] save maps to maps_6024.txt</span><br><span class="line">FindRet for GetStringUTFChars failed, sym:_ZN3art12_GLOBAL__N_18CheckJNI17GetStringUTFCharsEP7_JNIEnvP8_jstringPh.llvm.14181278422957417913 offse</span><br><span class="line">t:0x44b610</span><br><span class="line">FindRet for GetStringUTFChars -&gt; [0x4b7528] sym:_ZN3art3JNIILb0EE17GetStringUTFCharsEP7_JNIEnvP8_jstringPh offset:0x4b6e60</span><br><span class="line">FindRet for GetStringUTFChars -&gt; [0x51acb8] sym:_ZN3art3JNIILb1EE17GetStringUTFCharsEP7_JNIEnvP8_jstringPh offset:0x51a5f0</span><br></pre></td></tr></table></figure>
+
+<h4 id="执行结果解析"><a href="#执行结果解析" class="headerlink" title="执行结果解析"></a>执行结果解析</h4><p>0x4b7528 是函数最后一条指令的地址.  _ZN3art3JNIILb0EE17GetStringUTFCharsEP7_JNIEnvP8_jstringPh 是导出函数名, 0x4b6e60 是导出函数在so中的偏移</p>
+<h4 id="我们试试hook-ZN3art3JNIILb0EE17GetStringUTFCharsEP7-JNIEnvP8-jstringPh"><a href="#我们试试hook-ZN3art3JNIILb0EE17GetStringUTFCharsEP7-JNIEnvP8-jstringPh" class="headerlink" title="我们试试hook _ZN3art3JNIILb0EE17GetStringUTFCharsEP7_JNIEnvP8_jstringPh"></a>我们试试hook _ZN3art3JNIILb0EE17GetStringUTFCharsEP7_JNIEnvP8_jstringPh</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./stackplz -n com.zj.my_md5 -l /apex/com.android.art/lib64/libart.so -w _ZN3art3JNIILb0EE17GetStringUTFCharsEP7_JNIEnvP8_jstringPh[int,str]</span><br></pre></td></tr></table></figure>
+
+<h4 id="看看结果"><a href="#看看结果" class="headerlink" title="看看结果"></a>看看结果</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">idx:0 [/apex/com.android.art/lib64/libart.so] -&gt; sym:_ZN3art3JNIILb0EE17GetStringUTFCharsEP7_JNIEnvP8_jstringPh off:0x0</span><br><span class="line">ConfigMap&#123;stackplz_pid=7690,thread_whitelist=0&#125;</span><br><span class="line">uid =&gt; whitelist:[10274];blacklist:[]</span><br><span class="line">pid =&gt; whitelist:[6024];blacklist:[]</span><br><span class="line">tid =&gt; whitelist:[];blacklist:[]</span><br><span class="line">start 2 modules</span><br></pre></td></tr></table></figure>
+
+<h4 id="发现并没有调用，说明很可能是调用的另一个函数-试试另一个函数-ZN3art3JNIILb1EE17GetStringUTFCharsEP7-JNIEnvP8-jstringPh"><a href="#发现并没有调用，说明很可能是调用的另一个函数-试试另一个函数-ZN3art3JNIILb1EE17GetStringUTFCharsEP7-JNIEnvP8-jstringPh" class="headerlink" title="发现并没有调用，说明很可能是调用的另一个函数, 试试另一个函数 _ZN3art3JNIILb1EE17GetStringUTFCharsEP7_JNIEnvP8_jstringPh"></a>发现并没有调用，说明很可能是调用的另一个函数, 试试另一个函数 _ZN3art3JNIILb1EE17GetStringUTFCharsEP7_JNIEnvP8_jstringPh</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./stackplz -n com.zj.my_md5 -l /apex/com.android.art/lib64/libart.so -w _ZN3art3JNIILb1EE17GetStringUTFCharsEP7_JNIEnvP8_jstringPh[int,str]</span><br></pre></td></tr></table></figure>
+
+<h4 id="结果如下"><a href="#结果如下" class="headerlink" title="结果如下"></a>结果如下</h4><p><img src="/images/img_22.png" alt="img_1.png"></p>
+<h4 id="乱码-这是为什么呢-原来-GetStringUTFChars-的入参是jstring-出参是char-所以我们要inline-hook-GetStringUTFChars-的最后一条指令的地址-然后打印x0的值-arm64调用约定-返回值一般放在x0寄存器-。"><a href="#乱码-这是为什么呢-原来-GetStringUTFChars-的入参是jstring-出参是char-所以我们要inline-hook-GetStringUTFChars-的最后一条指令的地址-然后打印x0的值-arm64调用约定-返回值一般放在x0寄存器-。" class="headerlink" title="乱码 这是为什么呢?  原来 GetStringUTFChars 的入参是jstring, 出参是char * 所以我们要inline hook GetStringUTFChars 的最后一条指令的地址, 然后打印x0的值(arm64调用约定, 返回值一般放在x0寄存器)。"></a>乱码 这是为什么呢?  原来 GetStringUTFChars 的入参是jstring, 出参是char * 所以我们要inline hook GetStringUTFChars 的最后一条指令的地址, 然后打印x0的值(arm64调用约定, 返回值一般放在x0寄存器)。</h4><h4 id="试试看-代码如下"><a href="#试试看-代码如下" class="headerlink" title="试试看, 代码如下"></a>试试看, 代码如下</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./stackplz -n com.zj.my_md5 -l /apex/com.android.art/lib64/libart.so -w 0x51acb8[str:x0]</span><br></pre></td></tr></table></figure>
+
+<h4 id="执行结果"><a href="#执行结果" class="headerlink" title="执行结果"></a>执行结果</h4><p><img src="/images/img_23.png" alt="img_1.png"></p>
+<h4 id="可以看到-hook成功"><a href="#可以看到-hook成功" class="headerlink" title="可以看到 hook成功"></a>可以看到 hook成功</h4><h4 id="同理可以Hook-NewStringUTF-NewStringUTF-的入参是-char-，-所以只需要hook-偏移或者导出函数地址就可以了-不需要hook-函数的最后一条指令的地址"><a href="#同理可以Hook-NewStringUTF-NewStringUTF-的入参是-char-，-所以只需要hook-偏移或者导出函数地址就可以了-不需要hook-函数的最后一条指令的地址" class="headerlink" title="同理可以Hook NewStringUTF, NewStringUTF 的入参是 char *， 所以只需要hook 偏移或者导出函数地址就可以了, 不需要hook 函数的最后一条指令的地址"></a>同理可以Hook NewStringUTF, NewStringUTF 的入参是 char *， 所以只需要hook 偏移或者导出函数地址就可以了, 不需要hook 函数的最后一条指令的地址</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./stackplz -n com.zj.my_md5 -l /apex/com.android.art/lib64/libart.so -w _ZN3art3JNIILb1EE12NewStringUTFEP7_JNIEnvPKc[int,str] --regs</span><br></pre></td></tr></table></figure>
+<h4 id="亲测可行，-并且不同的so-可以调用的导出函数并不一样-例如某音和我自己写的so-虽然都是调用的-NewStringUTF-但是对应的导出函数名是不一样的，建议两个都试一下"><a href="#亲测可行，-并且不同的so-可以调用的导出函数并不一样-例如某音和我自己写的so-虽然都是调用的-NewStringUTF-但是对应的导出函数名是不一样的，建议两个都试一下" class="headerlink" title="亲测可行， 并且不同的so, 可以调用的导出函数并不一样. 例如某音和我自己写的so, 虽然都是调用的 NewStringUTF, 但是对应的导出函数名是不一样的，建议两个都试一下"></a>亲测可行， 并且不同的so, 可以调用的导出函数并不一样. 例如某音和我自己写的so, 虽然都是调用的 NewStringUTF, 但是对应的导出函数名是不一样的，建议两个都试一下</h4><h4 id="hook-某音-GetStringUTFChars"><a href="#hook-某音-GetStringUTFChars" class="headerlink" title="hook 某音 GetStringUTFChars"></a>hook 某音 GetStringUTFChars</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./stackplz -n com.ss.android.ugc.aweme -l /apex/com.android.art/lib64/libart.so -w 0x4b7528[str:x0]</span><br></pre></td></tr></table></figure>
+
+<h4 id="效果如下"><a href="#效果如下" class="headerlink" title="效果如下"></a>效果如下</h4><p><img src="/images/img_24.png" alt="img_1.png"></p>
+<h4 id="打印的无关信息过多，-试着过滤掉一部分-只要-data开头的数据-f-表示filter-w-data-表示-white-白名单-str-f0表示对第一个char-应用f0过滤策略-即-w-data"><a href="#打印的无关信息过多，-试着过滤掉一部分-只要-data开头的数据-f-表示filter-w-data-表示-white-白名单-str-f0表示对第一个char-应用f0过滤策略-即-w-data" class="headerlink" title="打印的无关信息过多， 试着过滤掉一部分. 只要&#x2F;data开头的数据.   -f 表示filter  w:&#x2F;data 表示 white 白名单.   str.f0表示对第一个char* 应用f0过滤策略, 即 w:&#x2F;data"></a>打印的无关信息过多， 试着过滤掉一部分. 只要&#x2F;data开头的数据.   -f 表示filter  w:&#x2F;data 表示 white 白名单.   str.f0表示对第一个char* 应用f0过滤策略, 即 w:&#x2F;data</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./stackplz -n com.ss.android.ugc.aweme -l /apex/com.android.art/lib64/libart.so -w 0x4b7528[str.f0:x0] -f w:/data</span><br></pre></td></tr></table></figure>
+
+<h4 id="看看结果-1"><a href="#看看结果-1" class="headerlink" title="看看结果"></a>看看结果</h4><p><img src="/images/img_25.png" alt="img_1.png"></p>
+<h4 id="hook-GetStaticMethodID"><a href="#hook-GetStaticMethodID" class="headerlink" title="hook  GetStaticMethodID"></a>hook  GetStaticMethodID</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./stackplz -n com.ss.android.ugc.aweme -l /apex/com.android.art/lib64/libart.so -w GetStaticMethodID --dumpret</span><br><span class="line">./stackplz -n com.ss.android.ugc.aweme -l /apex/com.android.art/lib64/libart.so -w 0x49e250[str:x2,str:x3]</span><br></pre></td></tr></table></figure>
+
+<h4 id="结果如下-豁然开朗"><a href="#结果如下-豁然开朗" class="headerlink" title="结果如下 豁然开朗"></a>结果如下 豁然开朗</h4><p><img src="/images/img_26.png" alt="img_1.png"></p>
+<h4 id="硬件断点-hook-0x1e66c-打印调用堆栈"><a href="#硬件断点-hook-0x1e66c-打印调用堆栈" class="headerlink" title="硬件断点 hook 0x1e66c 打印调用堆栈"></a>硬件断点 hook 0x1e66c 打印调用堆栈</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./stackplz -p `pidof com.zj.my_md5` --brk 0x715adae66c:x  --stack</span><br></pre></td></tr></table></figure>
+<p>0x715adae66c 是绝对地址.  通过so基址加偏移得到的.</p>
+<h4 id="结果如下-1"><a href="#结果如下-1" class="headerlink" title="结果如下"></a>结果如下</h4><p><img src="/images/img_27.png" alt="img_1.png"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/07/16/%E6%9F%90%E9%9F%B3six%E5%88%86%E6%9E%90%E8%AE%B0%E5%BD%95/" rel="prev" title="某音six分析记录(mgaic原创)">
+      <i class="fa fa-chevron-left"></i> 某音six分析记录(mgaic原创)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/07/19/%E6%9F%90%E8%A7%86%E9%A2%91%E5%8E%BB%E8%8A%B1/" rel="next" title="某视频去花">
+      某视频去花 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-number">1.</span> <span class="nav-text"></span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8A%E9%9D%A2%E6%98%AF%E6%88%91%E8%87%AA%E5%B7%B1%E5%86%99%E7%9A%84jni%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.</span> <span class="nav-text">上面是我自己写的jni实现.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#stackplz-hook-NewStringUTF-%E6%89%93%E5%8D%B0%E5%A0%86%E6%A0%88"><span class="nav-number">3.</span> <span class="nav-text">stackplz hook NewStringUTF 打印堆栈</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C%E5%A6%82%E4%B8%8B-%E5%8F%AF%E4%BB%A5%E7%9C%8B%E5%88%B0%E8%B0%83%E7%94%A8%E5%A0%86%E6%A0%88%E5%B7%B2%E7%BB%8F%E6%89%93%E5%8D%B0%E5%87%BA%E6%9D%A5%E4%BA%86"><span class="nav-number">4.</span> <span class="nav-text">结果如下, 可以看到调用堆栈已经打印出来了.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#hook-%E4%B8%80%E4%B8%8BGetStringUTFChars-%E7%9C%8B%E7%9C%8B%E5%85%A5%E5%8F%82"><span class="nav-number">5.</span> <span class="nav-text">hook 一下GetStringUTFChars 看看入参?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%88%E6%9F%A5%E7%9C%8B%E4%B8%80%E4%B8%8B%E5%AF%BC%E5%87%BA%E5%87%BD%E6%95%B0%E5%9C%B0%E5%9D%80"><span class="nav-number">6.</span> <span class="nav-text">先查看一下导出函数地址</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E7%BB%93%E6%9E%9C%E5%A6%82%E4%B8%8B"><span class="nav-number">7.</span> <span class="nav-text">执行结果如下</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E7%BB%93%E6%9E%9C%E8%A7%A3%E6%9E%90"><span class="nav-number">8.</span> <span class="nav-text">执行结果解析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%88%91%E4%BB%AC%E8%AF%95%E8%AF%95hook-ZN3art3JNIILb0EE17GetStringUTFCharsEP7-JNIEnvP8-jstringPh"><span class="nav-number">9.</span> <span class="nav-text">我们试试hook _ZN3art3JNIILb0EE17GetStringUTFCharsEP7_JNIEnvP8_jstringPh</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%9C%8B%E7%9C%8B%E7%BB%93%E6%9E%9C"><span class="nav-number">10.</span> <span class="nav-text">看看结果</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%91%E7%8E%B0%E5%B9%B6%E6%B2%A1%E6%9C%89%E8%B0%83%E7%94%A8%EF%BC%8C%E8%AF%B4%E6%98%8E%E5%BE%88%E5%8F%AF%E8%83%BD%E6%98%AF%E8%B0%83%E7%94%A8%E7%9A%84%E5%8F%A6%E4%B8%80%E4%B8%AA%E5%87%BD%E6%95%B0-%E8%AF%95%E8%AF%95%E5%8F%A6%E4%B8%80%E4%B8%AA%E5%87%BD%E6%95%B0-ZN3art3JNIILb1EE17GetStringUTFCharsEP7-JNIEnvP8-jstringPh"><span class="nav-number">11.</span> <span class="nav-text">发现并没有调用，说明很可能是调用的另一个函数, 试试另一个函数 _ZN3art3JNIILb1EE17GetStringUTFCharsEP7_JNIEnvP8_jstringPh</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C%E5%A6%82%E4%B8%8B"><span class="nav-number">12.</span> <span class="nav-text">结果如下</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B9%B1%E7%A0%81-%E8%BF%99%E6%98%AF%E4%B8%BA%E4%BB%80%E4%B9%88%E5%91%A2-%E5%8E%9F%E6%9D%A5-GetStringUTFChars-%E7%9A%84%E5%85%A5%E5%8F%82%E6%98%AFjstring-%E5%87%BA%E5%8F%82%E6%98%AFchar-%E6%89%80%E4%BB%A5%E6%88%91%E4%BB%AC%E8%A6%81inline-hook-GetStringUTFChars-%E7%9A%84%E6%9C%80%E5%90%8E%E4%B8%80%E6%9D%A1%E6%8C%87%E4%BB%A4%E7%9A%84%E5%9C%B0%E5%9D%80-%E7%84%B6%E5%90%8E%E6%89%93%E5%8D%B0x0%E7%9A%84%E5%80%BC-arm64%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A-%E8%BF%94%E5%9B%9E%E5%80%BC%E4%B8%80%E8%88%AC%E6%94%BE%E5%9C%A8x0%E5%AF%84%E5%AD%98%E5%99%A8-%E3%80%82"><span class="nav-number">13.</span> <span class="nav-text">乱码 这是为什么呢?  原来 GetStringUTFChars 的入参是jstring, 出参是char * 所以我们要inline hook GetStringUTFChars 的最后一条指令的地址, 然后打印x0的值(arm64调用约定, 返回值一般放在x0寄存器)。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%95%E8%AF%95%E7%9C%8B-%E4%BB%A3%E7%A0%81%E5%A6%82%E4%B8%8B"><span class="nav-number">14.</span> <span class="nav-text">试试看, 代码如下</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E7%BB%93%E6%9E%9C"><span class="nav-number">15.</span> <span class="nav-text">执行结果</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%AF%E4%BB%A5%E7%9C%8B%E5%88%B0-hook%E6%88%90%E5%8A%9F"><span class="nav-number">16.</span> <span class="nav-text">可以看到 hook成功</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%8C%E7%90%86%E5%8F%AF%E4%BB%A5Hook-NewStringUTF-NewStringUTF-%E7%9A%84%E5%85%A5%E5%8F%82%E6%98%AF-char-%EF%BC%8C-%E6%89%80%E4%BB%A5%E5%8F%AA%E9%9C%80%E8%A6%81hook-%E5%81%8F%E7%A7%BB%E6%88%96%E8%80%85%E5%AF%BC%E5%87%BA%E5%87%BD%E6%95%B0%E5%9C%B0%E5%9D%80%E5%B0%B1%E5%8F%AF%E4%BB%A5%E4%BA%86-%E4%B8%8D%E9%9C%80%E8%A6%81hook-%E5%87%BD%E6%95%B0%E7%9A%84%E6%9C%80%E5%90%8E%E4%B8%80%E6%9D%A1%E6%8C%87%E4%BB%A4%E7%9A%84%E5%9C%B0%E5%9D%80"><span class="nav-number">17.</span> <span class="nav-text">同理可以Hook NewStringUTF, NewStringUTF 的入参是 char *， 所以只需要hook 偏移或者导出函数地址就可以了, 不需要hook 函数的最后一条指令的地址</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%B2%E6%B5%8B%E5%8F%AF%E8%A1%8C%EF%BC%8C-%E5%B9%B6%E4%B8%94%E4%B8%8D%E5%90%8C%E7%9A%84so-%E5%8F%AF%E4%BB%A5%E8%B0%83%E7%94%A8%E7%9A%84%E5%AF%BC%E5%87%BA%E5%87%BD%E6%95%B0%E5%B9%B6%E4%B8%8D%E4%B8%80%E6%A0%B7-%E4%BE%8B%E5%A6%82%E6%9F%90%E9%9F%B3%E5%92%8C%E6%88%91%E8%87%AA%E5%B7%B1%E5%86%99%E7%9A%84so-%E8%99%BD%E7%84%B6%E9%83%BD%E6%98%AF%E8%B0%83%E7%94%A8%E7%9A%84-NewStringUTF-%E4%BD%86%E6%98%AF%E5%AF%B9%E5%BA%94%E7%9A%84%E5%AF%BC%E5%87%BA%E5%87%BD%E6%95%B0%E5%90%8D%E6%98%AF%E4%B8%8D%E4%B8%80%E6%A0%B7%E7%9A%84%EF%BC%8C%E5%BB%BA%E8%AE%AE%E4%B8%A4%E4%B8%AA%E9%83%BD%E8%AF%95%E4%B8%80%E4%B8%8B"><span class="nav-number">18.</span> <span class="nav-text">亲测可行， 并且不同的so, 可以调用的导出函数并不一样. 例如某音和我自己写的so, 虽然都是调用的 NewStringUTF, 但是对应的导出函数名是不一样的，建议两个都试一下</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#hook-%E6%9F%90%E9%9F%B3-GetStringUTFChars"><span class="nav-number">19.</span> <span class="nav-text">hook 某音 GetStringUTFChars</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%88%E6%9E%9C%E5%A6%82%E4%B8%8B"><span class="nav-number">20.</span> <span class="nav-text">效果如下</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%93%E5%8D%B0%E7%9A%84%E6%97%A0%E5%85%B3%E4%BF%A1%E6%81%AF%E8%BF%87%E5%A4%9A%EF%BC%8C-%E8%AF%95%E7%9D%80%E8%BF%87%E6%BB%A4%E6%8E%89%E4%B8%80%E9%83%A8%E5%88%86-%E5%8F%AA%E8%A6%81-data%E5%BC%80%E5%A4%B4%E7%9A%84%E6%95%B0%E6%8D%AE-f-%E8%A1%A8%E7%A4%BAfilter-w-data-%E8%A1%A8%E7%A4%BA-white-%E7%99%BD%E5%90%8D%E5%8D%95-str-f0%E8%A1%A8%E7%A4%BA%E5%AF%B9%E7%AC%AC%E4%B8%80%E4%B8%AAchar-%E5%BA%94%E7%94%A8f0%E8%BF%87%E6%BB%A4%E7%AD%96%E7%95%A5-%E5%8D%B3-w-data"><span class="nav-number">21.</span> <span class="nav-text">打印的无关信息过多， 试着过滤掉一部分. 只要&#x2F;data开头的数据.   -f 表示filter  w:&#x2F;data 表示 white 白名单.   str.f0表示对第一个char* 应用f0过滤策略, 即 w:&#x2F;data</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%9C%8B%E7%9C%8B%E7%BB%93%E6%9E%9C-1"><span class="nav-number">22.</span> <span class="nav-text">看看结果</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#hook-GetStaticMethodID"><span class="nav-number">23.</span> <span class="nav-text">hook  GetStaticMethodID</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C%E5%A6%82%E4%B8%8B-%E8%B1%81%E7%84%B6%E5%BC%80%E6%9C%97"><span class="nav-number">24.</span> <span class="nav-text">结果如下 豁然开朗</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A1%AC%E4%BB%B6%E6%96%AD%E7%82%B9-hook-0x1e66c-%E6%89%93%E5%8D%B0%E8%B0%83%E7%94%A8%E5%A0%86%E6%A0%88"><span class="nav-number">25.</span> <span class="nav-text">硬件断点 hook 0x1e66c 打印调用堆栈</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C%E5%A6%82%E4%B8%8B-1"><span class="nav-number">26.</span> <span class="nav-text">结果如下</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

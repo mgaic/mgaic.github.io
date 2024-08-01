@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="背景线上的项目是使用python3.6.15写的, 跑在docker下 问题某个进程执行巨慢，通过日志定位到了 if else, 但是if下的代码有日志, else 处并没有打日志, 所以想看看else 处到底发生了什么. 问题解决尝试方案一. gdb 调试.安装 gdb123456# 没权限记录加sudoapt upgradeapt updateapt install gdbapt instal">
+<meta property="og:type" content="article">
+<meta property="og:title" content="docker容器下对运行中python进程调试踩坑记录(mgaic亲踩)">
+<meta property="og:url" content="http://example.com/2024/08/01/docker%E5%AE%B9%E5%99%A8%E4%B8%8B%E5%AF%B9%E8%BF%90%E8%A1%8C%E4%B8%ADpython%E8%BF%9B%E7%A8%8B%E8%B0%83%E8%AF%95%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="背景线上的项目是使用python3.6.15写的, 跑在docker下 问题某个进程执行巨慢，通过日志定位到了 if else, 但是if下的代码有日志, else 处并没有打日志, 所以想看看else 处到底发生了什么. 问题解决尝试方案一. gdb 调试.安装 gdb123456# 没权限记录加sudoapt upgradeapt updateapt install gdbapt instal">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/img_29.png">
+<meta property="og:image" content="http://example.com/images/img_30.png">
+<meta property="og:image" content="http://example.com/images/img_31.png">
+<meta property="og:image" content="http://example.com/images/img_32.png">
+<meta property="article:published_time" content="2024-08-01T07:19:07.000Z">
+<meta property="article:modified_time" content="2024-08-01T07:57:39.876Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/img_29.png">
+
+<link rel="canonical" href="http://example.com/2024/08/01/docker%E5%AE%B9%E5%99%A8%E4%B8%8B%E5%AF%B9%E8%BF%90%E8%A1%8C%E4%B8%ADpython%E8%BF%9B%E7%A8%8B%E8%B0%83%E8%AF%95%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>docker容器下对运行中python进程调试踩坑记录(mgaic亲踩) | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/08/01/docker%E5%AE%B9%E5%99%A8%E4%B8%8B%E5%AF%B9%E8%BF%90%E8%A1%8C%E4%B8%ADpython%E8%BF%9B%E7%A8%8B%E8%B0%83%E8%AF%95%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          docker容器下对运行中python进程调试踩坑记录(mgaic亲踩)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2024-08-01 15:19:07 / Modified: 15:57:39" itemprop="dateCreated datePublished" datetime="2024-08-01T15:19:07+08:00">2024-08-01</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>线上的项目是使用python3.6.15写的, 跑在docker下</p>
+<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><p>某个进程执行巨慢，通过日志定位到了 if else, 但是if下的代码有日志, else 处并没有打日志, 所以想看看else 处到底发生了什么.</p>
+<h3 id="问题解决"><a href="#问题解决" class="headerlink" title="问题解决"></a>问题解决</h3><h4 id="尝试方案一-gdb-调试"><a href="#尝试方案一-gdb-调试" class="headerlink" title="尝试方案一. gdb 调试."></a>尝试方案一. gdb 调试.</h4><h4 id="安装-gdb"><a href="#安装-gdb" class="headerlink" title="安装 gdb"></a>安装 gdb</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">没权限记录加<span class="built_in">sudo</span></span></span><br><span class="line">apt upgrade</span><br><span class="line">apt update</span><br><span class="line">apt install gdb</span><br><span class="line">apt install python3-dbg</span><br><span class="line">gdb python pid</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="gdb-无法附加-可能是安全策略导致的"><a href="#gdb-无法附加-可能是安全策略导致的" class="headerlink" title="gdb 无法附加, 可能是安全策略导致的."></a>gdb 无法附加, 可能是安全策略导致的.</h4><p>尝试 echo 0 &#x2F;proc&#x2F;sys&#x2F;kernel&#x2F;yama&#x2F;ptrace_scope<br>但报错 只读文件系统.<br>一番搜索后, 发现可以在进入容器命令中加个参数即可解决.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker exec --privileged -ti ebbed4cb3xxxx bash</span><br></pre></td></tr></table></figure>
+
+<h4 id="解决后再次附加进程-结果如下"><a href="#解决后再次附加进程-结果如下" class="headerlink" title="解决后再次附加进程, 结果如下"></a>解决后再次附加进程, 结果如下</h4><p><img src="/images/img_29.png" alt="img_1.png"></p>
+<p>一番搜索后猜测是原因可能是 原进程是root用户启动的，或者该进程是root启动的. 暂时先忽略这个报错.</p>
+<h4 id="看看-bt-命令-打印一下堆栈"><a href="#看看-bt-命令-打印一下堆栈" class="headerlink" title="看看 bt 命令 打印一下堆栈"></a>看看 bt 命令 打印一下堆栈</h4><p><img src="/images/img_30.png" alt="img_1.png"></p>
+<h4 id="解释型语言，-这个堆栈，并不是我理想的样子"><a href="#解释型语言，-这个堆栈，并不是我理想的样子" class="headerlink" title="解释型语言， 这个堆栈，并不是我理想的样子."></a>解释型语言， 这个堆栈，并不是我理想的样子.</h4><h4 id="随即尝试方案二-真香"><a href="#随即尝试方案二-真香" class="headerlink" title="随即尝试方案二, 真香."></a>随即尝试方案二, 真香.</h4><p>同样需要安装 gdb、python3-dbg， 上面我们已经安装过了.</p>
+<h4 id="安装主次主角-pyrasite"><a href="#安装主次主角-pyrasite" class="headerlink" title="安装主次主角 pyrasite"></a>安装主次主角 pyrasite</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install pyrasite</span><br></pre></td></tr></table></figure>
+
+<p>同样需要 echo 0 | sudo tee &#x2F;proc&#x2F;sys&#x2F;kernel&#x2F;yama&#x2F;ptrace_scope， 如果是容器下, 只需要 docker exec 时候, 加上 –privileged 命令就好.</p>
+<p>然后执行 pyrasite-shell pid 附加到你要调试的进程中</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">pyrasite-shell your_need_attach_process_id</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/img_31.png" alt="img_1.png"></p>
+<p>可以看到已经成功附加到了原进程中, 并且打印Pid, 已经是原进程的pid.</p>
+<p><img src="/images/img_32.png" alt="img_1.png"><br>查看一下本地变量还有全局变量，打印一下本地变量 i的值，发现是变化的. 如果你的程序中有 redis_conn 这些，也应该可以执行 redis_conn.exist() 等复杂操作.</p>
+<p>调试完成后, Use quit() or Ctrl-D (i.e. EOF) to exit, 这种退出方式不会影响原进程, 原进程健壮地活着. 手动狗头.jpg</p>
+<p>done!!!</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/07/19/%E6%9F%90%E8%A7%86%E9%A2%91%E5%8E%BB%E8%8A%B1/" rel="prev" title="某视频去花">
+      <i class="fa fa-chevron-left"></i> 某视频去花
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-number">2.</span> <span class="nav-text">问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E8%A7%A3%E5%86%B3"><span class="nav-number">3.</span> <span class="nav-text">问题解决</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%9D%E8%AF%95%E6%96%B9%E6%A1%88%E4%B8%80-gdb-%E8%B0%83%E8%AF%95"><span class="nav-number">3.1.</span> <span class="nav-text">尝试方案一. gdb 调试.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85-gdb"><span class="nav-number">3.2.</span> <span class="nav-text">安装 gdb</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#gdb-%E6%97%A0%E6%B3%95%E9%99%84%E5%8A%A0-%E5%8F%AF%E8%83%BD%E6%98%AF%E5%AE%89%E5%85%A8%E7%AD%96%E7%95%A5%E5%AF%BC%E8%87%B4%E7%9A%84"><span class="nav-number">3.3.</span> <span class="nav-text">gdb 无法附加, 可能是安全策略导致的.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E5%90%8E%E5%86%8D%E6%AC%A1%E9%99%84%E5%8A%A0%E8%BF%9B%E7%A8%8B-%E7%BB%93%E6%9E%9C%E5%A6%82%E4%B8%8B"><span class="nav-number">3.4.</span> <span class="nav-text">解决后再次附加进程, 结果如下</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%9C%8B%E7%9C%8B-bt-%E5%91%BD%E4%BB%A4-%E6%89%93%E5%8D%B0%E4%B8%80%E4%B8%8B%E5%A0%86%E6%A0%88"><span class="nav-number">3.5.</span> <span class="nav-text">看看 bt 命令 打印一下堆栈</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E9%87%8A%E5%9E%8B%E8%AF%AD%E8%A8%80%EF%BC%8C-%E8%BF%99%E4%B8%AA%E5%A0%86%E6%A0%88%EF%BC%8C%E5%B9%B6%E4%B8%8D%E6%98%AF%E6%88%91%E7%90%86%E6%83%B3%E7%9A%84%E6%A0%B7%E5%AD%90"><span class="nav-number">3.6.</span> <span class="nav-text">解释型语言， 这个堆栈，并不是我理想的样子.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9A%8F%E5%8D%B3%E5%B0%9D%E8%AF%95%E6%96%B9%E6%A1%88%E4%BA%8C-%E7%9C%9F%E9%A6%99"><span class="nav-number">3.7.</span> <span class="nav-text">随即尝试方案二, 真香.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E4%B8%BB%E6%AC%A1%E4%B8%BB%E8%A7%92-pyrasite"><span class="nav-number">3.8.</span> <span class="nav-text">安装主次主角 pyrasite</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
