@@ -146,6 +146,173 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/08/26/ollvm-bcf-bapass/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/08/26/ollvm-bcf-bapass/" class="post-title-link" itemprop="url">某大厂风控 ollvm bcf 学习记录</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-08-26 11:47:30" itemprop="dateCreated datePublished" datetime="2024-08-26T11:47:30+08:00">2024-08-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-08-27 11:13:59" itemprop="dateModified" datetime="2024-08-27T11:13:59+08:00">2024-08-27</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="先来看看效果图"><a href="#先来看看效果图" class="headerlink" title="先来看看效果图"></a>先来看看效果图</h1><h4 id="绕过前-F5-长这个样子-有一部分bcf-bugus-control-flow-虚假控制流-的痕迹"><a href="#绕过前-F5-长这个样子-有一部分bcf-bugus-control-flow-虚假控制流-的痕迹" class="headerlink" title="绕过前 F5 长这个样子, 有一部分bcf(bugus control flow 虚假控制流) 的痕迹."></a>绕过前 F5 长这个样子, 有一部分bcf(bugus control flow 虚假控制流) 的痕迹.</h4><p><img src="/images/img_39.png" alt="img_1.png"></p>
+<h4 id="进入看看-dword-C0118-dword-C0120-同理"><a href="#进入看看-dword-C0118-dword-C0120-同理" class="headerlink" title="进入看看 dword_C0118 (dword_C0120 同理)"></a>进入看看 dword_C0118 (dword_C0120 同理)</h4><p><img src="/images/img_40.png" alt="img_1.png"></p>
+<h4 id="可以看到是引用了bss段上的数据-我们知道bss段上存放的是未初始化的全局变量和未初始化的局部静态变量-未初始化的全局变量和未初始化的局部静态变量默认值是0"><a href="#可以看到是引用了bss段上的数据-我们知道bss段上存放的是未初始化的全局变量和未初始化的局部静态变量-未初始化的全局变量和未初始化的局部静态变量默认值是0" class="headerlink" title="可以看到是引用了bss段上的数据. 我们知道bss段上存放的是未初始化的全局变量和未初始化的局部静态变量. 未初始化的全局变量和未初始化的局部静态变量默认值是0."></a>可以看到是引用了bss段上的数据. 我们知道bss段上存放的是未初始化的全局变量和未初始化的局部静态变量. 未初始化的全局变量和未初始化的局部静态变量默认值是0.</h4><p>按X 看看交叉引用 有没有哪些地方修改过这个变量.</p>
+<p><img src="/images/img_41.png" alt="img_1.png"></p>
+<p>可以看到有 1588 处引用. 但都是读取操作, 并没有 str 等赋值操作.</p>
+<p>但由于bss段是可读可写的, 所以ida 并没有帮我们优化掉这个判断, 导致我们F5有 if 存在. 如果我们将这个地址设置为只读. ida 会帮我们进行优化.</p>
+<p>要怎么修改呢？</p>
+<p>快捷键 SHIFT + F7  查看segment<br><img src="/images/img_42.png" alt="img_1.png"></p>
+<p>右键选择 Edit segment, 不要勾选 write<br><img src="/images/img_43.png" alt="img_1.png"></p>
+<p>这样整个bss段的属性就被修改了. 但是bss段有有多变量， 会影响到其他变量. 所以不能这么做. 好的做法就是新增一个段.<br>然后将 dword_C0118, dword_C0120 这两个地址放在新增的段中, 然后设置新增的段的属性为只读. 我们来实操一下<br><img src="/images/img_44.png" alt="img_1.png"></p>
+<p>给这个新增的段命名, 并填写start_addr和 end_addr, 经过个人踩坑, 这个区间是 [) 前闭后开的, 也就是start_addr 可以取到 , end_addr 取不到.<br><img src="/images/img_45.png" alt="img_1.png"></p>
+<p>新增 my_segment 段后再次 SHIFT + F7 看看所有的段<br><img src="/images/img_47.png" alt="img_1.png"></p>
+<p>可以看到我们新增的段 my_segment.</p>
+<p>然后鼠标右键 Edit segment,  编辑我们新加的段. my_segment, 只勾选只读.</p>
+<p>修改完成后我们直接F5, 看看效果如何?</p>
+<p>发现失败了. what?????????????<br>为什么, 我们用idc patch  dword_C0118、dword_C0120 试试看</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">idc.patch_dword(0xC0118, 0)</span><br><span class="line">idc.patch_dword(0xC0120, 0)</span><br></pre></td></tr></table></figure>
+
+<p>再次F5 看看<br><img src="/images/img_46.png" alt="img_1.png"></p>
+<p>可以看到，大功告成  这些分支已经被去除了. 静态分析更易读了.</p>
+<p>再加深一下概念, if else 中的判断条件就是所谓的 不透明谓词.</p>
+<h4 id="再来个练习-这是一个32位的so"><a href="#再来个练习-这是一个32位的so" class="headerlink" title="再来个练习, 这是一个32位的so"></a>再来个练习, 这是一个32位的so</h4><p>样本so <a href="/downloads/target_arm_bogus">target_arm_bogus_arm32.so</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/08/12/frida-stalker-trace%E4%BD%BF%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/08/12/frida-stalker-trace%E4%BD%BF%E7%94%A8/" class="post-title-link" itemprop="url">frida-stalker-trace使用</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2024-08-12 11:10:24 / Modified: 18:42:05" itemprop="dateCreated datePublished" datetime="2024-08-12T11:10:24+08:00">2024-08-12</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="我们自己写了一个app-现在对这个app进行trace"><a href="#我们自己写了一个app-现在对这个app进行trace" class="headerlink" title="我们自己写了一个app, 现在对这个app进行trace"></a>我们自己写了一个app, 现在对这个app进行trace</h3><p>先看看so名</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/$(pidof com.zj.my_md5 )/maps | grep checkout</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/img_33.png" alt="img_1.png"></p>
+<p>这是一个 64位的so. 名为 libcheckout.so</p>
+<p>ida 打开看看目标so</p>
+<p><img src="/images/img_34.png" alt="img_1.png"></p>
+<p>现在就使用 stalker 对这个函数进行trace</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">function hook_native_stalker()&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        var so_addr = Module.findBaseAddress(&quot;libcheckout.so&quot;);</span><br><span class="line">        if (so_addr)</span><br><span class="line">        &#123;</span><br><span class="line">            console.log(&quot;so_addr:&quot;, so_addr);</span><br><span class="line">            var addr_13F91 = so_addr.add(0x1E658);</span><br><span class="line">            console.log(&quot;The addr_13F91:&quot;, addr_13F91);</span><br><span class="line">            var stalker_hook = false;</span><br><span class="line">            Interceptor.attach(addr_13F91,</span><br><span class="line">            &#123;</span><br><span class="line">                onEnter: function (args) &#123;</span><br><span class="line">                    console.warn(JSON.stringify(&#123;</span><br><span class="line">                      // fname: args[1].readCString(),</span><br><span class="line">                      // text: new ObjC.Object(args[2]).toString(),</span><br><span class="line">                      backtrace: Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).map(m =&gt; m.moduleName+&#x27;!&#x27;+m.name),</span><br><span class="line">                      ctx: this.context</span><br><span class="line">                    &#125;, null, 2));</span><br><span class="line">                    var tid = Process.getCurrentThreadId();</span><br><span class="line">                    this.tid = tid;</span><br><span class="line">                    Stalker.follow(tid, &#123;</span><br><span class="line">                      events: &#123;</span><br><span class="line">                        call: true</span><br><span class="line">                      &#125;,</span><br><span class="line">                      /*</span><br><span class="line">                      onCallSummary: function (summary) &#123;</span><br><span class="line">                        Object.keys(summary).forEach(s =&gt; &#123;</span><br><span class="line">                          var sym = DebugSymbol.fromAddress(ptr(s));</span><br><span class="line">                          if (sym.moduleName == &#x27;Viber&#x27;)</span><br><span class="line">                            console.log(summary[s], sym.name);</span><br><span class="line">                        &#125;)</span><br><span class="line">                      &#125;</span><br><span class="line">                      */</span><br><span class="line">                      transform: function (iterator) &#123;</span><br><span class="line">                        var instruction;</span><br><span class="line">                        while ((instruction = iterator.next()) !== null) &#123;</span><br><span class="line">                          iterator.keep();</span><br><span class="line">                          if (instruction.mnemonic.startsWith(&#x27;bl&#x27;)) &#123;</span><br><span class="line">                            try &#123;</span><br><span class="line">                              console.log(&#x27;#&#x27; + tid + &#x27;:&#x27; + DebugSymbol.fromAddress(ptr(instruction.operands[0].value)));</span><br><span class="line">                            &#125; catch (e) &#123;</span><br><span class="line">                              // ignoring branch&amp;link to register</span><br><span class="line">                            &#125;</span><br><span class="line">                          &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                      &#125;</span><br><span class="line">                    &#125;);</span><br><span class="line">                  &#125;,</span><br><span class="line">                  onLeave: function (retval) &#123;</span><br><span class="line">                    Stalker.unfollow(this.tid);</span><br><span class="line">                    Stalker.garbageCollect();</span><br><span class="line">                    console.log(&quot;=====================================================&quot;)</span><br><span class="line"></span><br><span class="line">                  &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            &#125;)</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">hook_native_stalker()</span><br></pre></td></tr></table></figure>
+
+<p>遇到bl指令 就打印调用地址.</p>
+<p>结果如下</p>
+<p><img src="/images/img_35.png" alt="img_1.png"></p>
+<p>可以看到 0x43690 这个函数被调用。</p>
+<p>ida看一下这个地址 正是关键函数.</p>
+<p><img src="/images/img_36.png" alt="img_1.png"></p>
+<p>使用frida stalker trace 一下某视频看看</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">hook_native_stalker_dy</span>(<span class="params"></span>)&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">var</span> so_name = <span class="string">&quot;libmetaxxx.so&quot;</span></span><br><span class="line">        <span class="keyword">var</span> so_addr = <span class="title class_">Module</span>.<span class="title function_">findBaseAddress</span>(so_name);</span><br><span class="line">        <span class="keyword">var</span> so_size = <span class="title class_">Process</span>.<span class="title function_">getModuleByName</span>(so_name).<span class="property">size</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (so_addr)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;so_addr:&quot;</span>, so_addr);</span><br><span class="line">            <span class="comment">// var hook_addr = so_addr.add(0xc167c);</span></span><br><span class="line">            <span class="keyword">var</span> hook_addr = so_addr.<span class="title function_">add</span>(<span class="number">0xbe040</span>);</span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;The addr_13F91:&quot;</span>, hook_addr);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">var</span> stalker_hook = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">var</span> pre_regs = &#123;&#125;</span><br><span class="line"></span><br><span class="line">            <span class="title class_">Interceptor</span>.<span class="title function_">attach</span>(hook_addr,</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="attr">onEnter</span>: <span class="keyword">function</span> (<span class="params">args</span>) &#123;</span><br><span class="line">                    <span class="variable language_">console</span>.<span class="title function_">warn</span>(<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123;</span><br><span class="line">                      <span class="comment">// fname: args[1].readCString(),</span></span><br><span class="line">                      <span class="comment">// text: new ObjC.Object(args[2]).toString(),</span></span><br><span class="line">                      <span class="attr">backtrace</span>: <span class="title class_">Thread</span>.<span class="title function_">backtrace</span>(<span class="variable language_">this</span>.<span class="property">context</span>, <span class="title class_">Backtracer</span>.<span class="property">ACCURATE</span>).<span class="title function_">map</span>(<span class="title class_">DebugSymbol</span>.<span class="property">fromAddress</span>).<span class="title function_">map</span>(<span class="function"><span class="params">m</span> =&gt;</span> m.<span class="property">moduleName</span>+<span class="string">&#x27;!&#x27;</span>+m.<span class="property">name</span>),</span><br><span class="line">                      <span class="attr">ctx</span>: <span class="variable language_">this</span>.<span class="property">context</span></span><br><span class="line">                    &#125;, <span class="literal">null</span>, <span class="number">2</span>));</span><br><span class="line">                    <span class="keyword">var</span> tid = <span class="title class_">Process</span>.<span class="title function_">getCurrentThreadId</span>();</span><br><span class="line">                    <span class="variable language_">this</span>.<span class="property">tid</span> = tid;</span><br><span class="line">                    <span class="title class_">Stalker</span>.<span class="title function_">follow</span>(tid, &#123;</span><br><span class="line">                      <span class="attr">events</span>: &#123;</span><br><span class="line">                        <span class="attr">call</span>: <span class="literal">true</span></span><br><span class="line">                      &#125;,</span><br><span class="line">                      <span class="comment">/*</span></span><br><span class="line"><span class="comment">                      onCallSummary: function (summary) &#123;</span></span><br><span class="line"><span class="comment">                        Object.keys(summary).forEach(s =&gt; &#123;</span></span><br><span class="line"><span class="comment">                          var sym = DebugSymbol.fromAddress(ptr(s));</span></span><br><span class="line"><span class="comment">                          if (sym.moduleName == &#x27;Viber&#x27;)</span></span><br><span class="line"><span class="comment">                            console.log(summary[s], sym.name);</span></span><br><span class="line"><span class="comment">                        &#125;)</span></span><br><span class="line"><span class="comment">                      &#125;</span></span><br><span class="line"><span class="comment">                      */</span></span><br><span class="line">                      <span class="attr">transform</span>: <span class="keyword">function</span> (<span class="params">iterator</span>) &#123;</span><br><span class="line">                            <span class="keyword">var</span> instruction = iterator.<span class="title function_">next</span>();</span><br><span class="line">                            <span class="keyword">const</span> startAddress = instruction.<span class="property">address</span>;</span><br><span class="line">                            <span class="keyword">if</span> (startAddress)&#123;</span><br><span class="line">                                <span class="keyword">var</span> isModule = startAddress.<span class="title function_">compare</span>(so_addr.<span class="title function_">add</span>(<span class="number">0xbe040</span>)) &gt;= <span class="number">0</span> &amp;&amp; startAddress.<span class="title function_">compare</span>(so_addr.<span class="title function_">add</span>(so_size)) &lt; <span class="number">0</span>;</span><br><span class="line">                                <span class="keyword">do</span>&#123;</span><br><span class="line">                                    <span class="keyword">if</span> (isModule)&#123;</span><br><span class="line">                                        <span class="keyword">if</span> (instruction.<span class="property">mnemonic</span>.<span class="title function_">startsWith</span>(<span class="string">&#x27;bl&#x27;</span>)) &#123;</span><br><span class="line">                                            <span class="comment">// var uuid = getUuid()</span></span><br><span class="line">                                            <span class="comment">// console.log(&quot;uuid 1&quot;, uuid)</span></span><br><span class="line">                                            <span class="keyword">try</span> &#123;</span><br><span class="line"></span><br><span class="line">                                                iterator.<span class="title function_">putCallout</span>(<span class="keyword">function</span> (<span class="params">context</span>) &#123;</span><br><span class="line">                                                    <span class="keyword">var</span> pc = context.<span class="property">pc</span>; <span class="comment">//获取pc寄存器，当前地址</span></span><br><span class="line">                                                    <span class="keyword">var</span> lr = context.<span class="property">lr</span>; <span class="comment">//获取pc寄存器，当前地址</span></span><br><span class="line">                                                    <span class="keyword">var</span> x0 = context.<span class="property">x0</span>; <span class="comment">//获取pc寄存器，当前地址</span></span><br><span class="line">                                                    <span class="keyword">var</span> <span class="variable language_">module</span> = <span class="title class_">Process</span>.<span class="title function_">findModuleByAddress</span>(pc);</span><br><span class="line">                                                    <span class="keyword">if</span> (<span class="variable language_">module</span>) &#123;</span><br><span class="line">                                                        <span class="comment">//如果模块存在</span></span><br><span class="line">                                                        <span class="comment">// var diff_regs = get_diff_regs(context, pre_regs);</span></span><br><span class="line"></span><br><span class="line">                                                        <span class="comment">// console.log(module.name + &quot;!&quot; + ptr(pc).sub(module.base),</span></span><br><span class="line">                                                        <span class="comment">//     Instruction.parse(ptr(pc)),</span></span><br><span class="line">                                                        <span class="comment">//     // JSON.stringify(diff_regs)</span></span><br><span class="line">                                                        <span class="comment">// );</span></span><br><span class="line">                                                        <span class="keyword">try</span>&#123;</span><br><span class="line">                                                            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="title class_">Memory</span>.<span class="title function_">readCString</span>(<span class="title function_">ptr</span>(x0)))</span><br><span class="line">                                                        &#125;</span><br><span class="line">                                                        <span class="keyword">catch</span> (e)&#123;</span><br><span class="line"></span><br><span class="line">                                                        &#125;</span><br><span class="line"></span><br><span class="line">                                                        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;pc ====&quot;</span> + <span class="title class_">DebugSymbol</span>.<span class="title function_">fromAddress</span>(<span class="title function_">ptr</span>(pc)))</span><br><span class="line">                                                        <span class="comment">// console.log(&quot;lr ====&quot; + DebugSymbol.fromAddress(ptr(lr)))</span></span><br><span class="line"></span><br><span class="line">                                                    &#125;</span><br><span class="line">                                                &#125;);</span><br><span class="line"></span><br><span class="line">                                                <span class="comment">// console.log(&#x27;#&#x27; + tid + &#x27;:&#x27; + DebugSymbol.fromAddress(ptr(instruction.operands[0].value)));</span></span><br><span class="line"></span><br><span class="line">                                                <span class="comment">// console.log(instruction.toString())</span></span><br><span class="line">                                                <span class="comment">// console.log(context)</span></span><br><span class="line">                                        &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">                                            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;error&quot;</span>, e)</span><br><span class="line">                                          <span class="comment">// ignoring branch&amp;link to register</span></span><br><span class="line">                                        &#125;</span><br><span class="line">                                      &#125;</span><br><span class="line">                                    &#125;</span><br><span class="line">                                    iterator.<span class="title function_">keep</span>();</span><br><span class="line">                                &#125; <span class="keyword">while</span> ((instruction = iterator.<span class="title function_">next</span>()) !== <span class="literal">null</span>);</span><br><span class="line">                            &#125;</span><br><span class="line">                      &#125;,</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">                    &#125;);</span><br><span class="line">                  &#125;,</span><br><span class="line">                  <span class="attr">onLeave</span>: <span class="keyword">function</span> (<span class="params">retval</span>) &#123;</span><br><span class="line">                    <span class="title class_">Stalker</span>.<span class="title function_">unfollow</span>(<span class="variable language_">this</span>.<span class="property">tid</span>);</span><br><span class="line">                    <span class="title class_">Stalker</span>.<span class="title function_">garbageCollect</span>();</span><br><span class="line">                    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;=====================================================&quot;</span>)</span><br><span class="line"></span><br><span class="line">                  &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            &#125;)</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每次执行bl指令时, 就打印当前pc, 并且尝试打印 cstring, x0</p>
+<p>trace 结果如下</p>
+<p><img src="/images/img_37.png" alt="img_1.png"></p>
+<p>可以看到 核心算法结果已经出来了, 剩下得就是分析了.</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="http://example.com/2024/08/01/docker%E5%AE%B9%E5%99%A8%E4%B8%8B%E5%AF%B9%E8%BF%90%E8%A1%8C%E4%B8%ADpython%E8%BF%9B%E7%A8%8B%E8%B0%83%E8%AF%95%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -749,7 +916,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-count">9</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
