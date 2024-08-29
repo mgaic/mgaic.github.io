@@ -20,12 +20,12 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="先来看看效果图绕过前 F5 长这个样子, 有一部分bcf(bugus control flow 虚假控制流) 的痕迹. 进入看看 dword_C0118 (dword_C0120 同理) 可以看到是引用了bss段上的数据. 我们知道bss段上存放的是未初始化的全局变量和未初始化的局部静态变量. 未初始化的全局变量和未初始化的局部静态变量默认值是0.按X 看看交叉引用 有没有哪些地方修改过这个变量.">
+  <meta name="description" content="样例: libbxxdxprotect.so 先来看看效果图绕过前 F5 长这个样子, 有一部分bcf(bugus control flow 虚假控制流) 的痕迹. 这些变量决定着分支的走向. 点击进入看看变量 dword_C0118 (dword_C0120 同理) 可以看到是引用了bss段上的数据. 我们知道bss段上存放的是未初始化的全局变量和未初始化的局部静态变量. 未初始化的全局变量和未">
 <meta property="og:type" content="article">
-<meta property="og:title" content="某大厂风控 ollvm bcf 学习记录">
+<meta property="og:title" content="某大厂风控 ollvm bcf fla学习记录">
 <meta property="og:url" content="http://example.com/2024/08/26/ollvm-bcf-bapass/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="先来看看效果图绕过前 F5 长这个样子, 有一部分bcf(bugus control flow 虚假控制流) 的痕迹. 进入看看 dword_C0118 (dword_C0120 同理) 可以看到是引用了bss段上的数据. 我们知道bss段上存放的是未初始化的全局变量和未初始化的局部静态变量. 未初始化的全局变量和未初始化的局部静态变量默认值是0.按X 看看交叉引用 有没有哪些地方修改过这个变量.">
+<meta property="og:description" content="样例: libbxxdxprotect.so 先来看看效果图绕过前 F5 长这个样子, 有一部分bcf(bugus control flow 虚假控制流) 的痕迹. 这些变量决定着分支的走向. 点击进入看看变量 dword_C0118 (dword_C0120 同理) 可以看到是引用了bss段上的数据. 我们知道bss段上存放的是未初始化的全局变量和未初始化的局部静态变量. 未初始化的全局变量和未">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/images/img_39.png">
 <meta property="og:image" content="http://example.com/images/img_40.png">
@@ -36,8 +36,23 @@
 <meta property="og:image" content="http://example.com/images/img_45.png">
 <meta property="og:image" content="http://example.com/images/img_47.png">
 <meta property="og:image" content="http://example.com/images/img_46.png">
+<meta property="og:image" content="http://example.com/images/img_48.png">
+<meta property="og:image" content="http://example.com/images/img_49.png">
+<meta property="og:image" content="http://example.com/images/img_50.png">
+<meta property="og:image" content="http://example.com/images/img_51.png">
+<meta property="og:image" content="http://example.com/images/img_52.png">
+<meta property="og:image" content="http://example.com/images/img_53.png">
+<meta property="og:image" content="http://example.com/images/img_54.png">
+<meta property="og:image" content="http://example.com/images/img_56.png">
+<meta property="og:image" content="http://example.com/images/img_55.png">
+<meta property="og:image" content="http://example.com/images/img_57.png">
+<meta property="og:image" content="http://example.com/images/img_58.png">
+<meta property="og:image" content="http://example.com/images/img_59.png">
+<meta property="og:image" content="http://example.com/images/img_60.png">
+<meta property="og:image" content="http://example.com/images/img_62.png">
+<meta property="og:image" content="http://example.com/images/img_61.png">
 <meta property="article:published_time" content="2024-08-26T03:47:30.000Z">
-<meta property="article:modified_time" content="2024-08-27T03:13:59.868Z">
+<meta property="article:modified_time" content="2024-08-29T02:28:56.413Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://example.com/images/img_39.png">
@@ -55,7 +70,7 @@
   };
 </script>
 
-  <title>某大厂风控 ollvm bcf 学习记录 | Hexo</title>
+  <title>某大厂风控 ollvm bcf fla学习记录 | Hexo</title>
   
 
 
@@ -174,7 +189,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          某大厂风控 ollvm bcf 学习记录
+          某大厂风控 ollvm bcf fla学习记录
         </h1>
 
         <div class="post-meta">
@@ -191,7 +206,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-08-27 11:13:59" itemprop="dateModified" datetime="2024-08-27T11:13:59+08:00">2024-08-27</time>
+                <time title="Modified: 2024-08-29 10:28:56" itemprop="dateModified" datetime="2024-08-29T10:28:56+08:00">2024-08-29</time>
               </span>
 
           
@@ -205,16 +220,19 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="先来看看效果图"><a href="#先来看看效果图" class="headerlink" title="先来看看效果图"></a>先来看看效果图</h1><h4 id="绕过前-F5-长这个样子-有一部分bcf-bugus-control-flow-虚假控制流-的痕迹"><a href="#绕过前-F5-长这个样子-有一部分bcf-bugus-control-flow-虚假控制流-的痕迹" class="headerlink" title="绕过前 F5 长这个样子, 有一部分bcf(bugus control flow 虚假控制流) 的痕迹."></a>绕过前 F5 长这个样子, 有一部分bcf(bugus control flow 虚假控制流) 的痕迹.</h4><p><img src="/images/img_39.png" alt="img_1.png"></p>
-<h4 id="进入看看-dword-C0118-dword-C0120-同理"><a href="#进入看看-dword-C0118-dword-C0120-同理" class="headerlink" title="进入看看 dword_C0118 (dword_C0120 同理)"></a>进入看看 dword_C0118 (dword_C0120 同理)</h4><p><img src="/images/img_40.png" alt="img_1.png"></p>
-<h4 id="可以看到是引用了bss段上的数据-我们知道bss段上存放的是未初始化的全局变量和未初始化的局部静态变量-未初始化的全局变量和未初始化的局部静态变量默认值是0"><a href="#可以看到是引用了bss段上的数据-我们知道bss段上存放的是未初始化的全局变量和未初始化的局部静态变量-未初始化的全局变量和未初始化的局部静态变量默认值是0" class="headerlink" title="可以看到是引用了bss段上的数据. 我们知道bss段上存放的是未初始化的全局变量和未初始化的局部静态变量. 未初始化的全局变量和未初始化的局部静态变量默认值是0."></a>可以看到是引用了bss段上的数据. 我们知道bss段上存放的是未初始化的全局变量和未初始化的局部静态变量. 未初始化的全局变量和未初始化的局部静态变量默认值是0.</h4><p>按X 看看交叉引用 有没有哪些地方修改过这个变量.</p>
+        <p>样例: libbxxdxprotect.so</p>
+<h4 id="先来看看效果图"><a href="#先来看看效果图" class="headerlink" title="先来看看效果图"></a>先来看看效果图</h4><p>绕过前 F5 长这个样子, 有一部分bcf(bugus control flow 虚假控制流) 的痕迹.<br><img src="/images/img_39.png" alt="img_1.png"></p>
+<p>这些变量决定着分支的走向.</p>
+<p>点击进入看看变量 dword_C0118 (dword_C0120 同理)<br><img src="/images/img_40.png" alt="img_1.png"></p>
+<p>可以看到是引用了bss段上的数据. 我们知道bss段上存放的是未初始化的全局变量和未初始化的局部静态变量. 未初始化的全局变量和未初始化的局部静态变量默认值是0.</p>
+<p>按X 看看交叉引用 有没有哪些地方修改过这个变量.</p>
 <p><img src="/images/img_41.png" alt="img_1.png"></p>
 <p>可以看到有 1588 处引用. 但都是读取操作, 并没有 str 等赋值操作.</p>
 <p>但由于bss段是可读可写的, 所以ida 并没有帮我们优化掉这个判断, 导致我们F5有 if 存在. 如果我们将这个地址设置为只读. ida 会帮我们进行优化.</p>
 <p>要怎么修改呢？</p>
 <p>快捷键 SHIFT + F7  查看segment<br><img src="/images/img_42.png" alt="img_1.png"></p>
 <p>右键选择 Edit segment, 不要勾选 write<br><img src="/images/img_43.png" alt="img_1.png"></p>
-<p>这样整个bss段的属性就被修改了. 但是bss段有有多变量， 会影响到其他变量. 所以不能这么做. 好的做法就是新增一个段.<br>然后将 dword_C0118, dword_C0120 这两个地址放在新增的段中, 然后设置新增的段的属性为只读. 我们来实操一下<br><img src="/images/img_44.png" alt="img_1.png"></p>
+<p>这样整个bss段的属性就被修改了. 但是bss段有有多变量， 会影响到其他变量. 所以并不推荐这样做, 好的做法就是新增一个段. 然后将 dword_C0118, dword_C0120 这两个地址放在新增的段中, 然后设置新增的段的属性为只读. 我们来实操一下<br><img src="/images/img_44.png" alt="img_1.png"></p>
 <p>给这个新增的段命名, 并填写start_addr和 end_addr, 经过个人踩坑, 这个区间是 [) 前闭后开的, 也就是start_addr 可以取到 , end_addr 取不到.<br><img src="/images/img_45.png" alt="img_1.png"></p>
 <p>新增 my_segment 段后再次 SHIFT + F7 看看所有的段<br><img src="/images/img_47.png" alt="img_1.png"></p>
 <p>可以看到我们新增的段 my_segment.</p>
@@ -223,10 +241,63 @@
 <p>发现失败了. what?????????????<br>为什么, 我们用idc patch  dword_C0118、dword_C0120 试试看</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">idc.patch_dword(0xC0118, 0)</span><br><span class="line">idc.patch_dword(0xC0120, 0)</span><br></pre></td></tr></table></figure>
 
+<p>这里插一嘴. ida 还有两个设置段边界的api, 此处只为记录, 具体如下:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">第一个参数是你要修改的段的地址, 段中的任意一个地址即可, 第二个参数是段边界的start_addr,  第二个参数是段边界的 end_addr, 注意是开区间, 也就是[start_add, end_addr), end_addr是取不到的. 第四个参数目前还不清楚</span></span><br><span class="line">idc.set_segment_bounds(0xC0148, 0xC0118, 0xC0149, idc.SEGMOD_SILENT)</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">设置段的属性. 第一个参数是某个段其中的任意一个地址,  第二个参数固定, 第三个参数是 4, 2, 1 分别对应 r, w, e</span></span><br><span class="line">idc.set_segm_attr(0xC0148, idc.SEGATTR_PERM, 4)</span><br></pre></td></tr></table></figure>
+
 <p>再次F5 看看<br><img src="/images/img_46.png" alt="img_1.png"></p>
 <p>可以看到，大功告成  这些分支已经被去除了. 静态分析更易读了.</p>
 <p>再加深一下概念, if else 中的判断条件就是所谓的 不透明谓词.</p>
 <h4 id="再来个练习-这是一个32位的so"><a href="#再来个练习-这是一个32位的so" class="headerlink" title="再来个练习, 这是一个32位的so"></a>再来个练习, 这是一个32位的so</h4><p>样本so <a href="/downloads/target_arm_bogus">target_arm_bogus_arm32.so</a></p>
+<p>对于这个样本， 亲测可以通过 设置内存只读+patch_dword 来去除if else 混淆<br>但这里 我们不使用这种方式, 我们使用一个开源的 debogus的库来实现</p>
+<p>代码地址 <a target="_blank" rel="noopener" href="https://github.com/cq674350529/deflat">仓库地址</a></p>
+<p>使用方式很简单.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd bogus_control_flow &amp;&amp; python3 debogus.py -f samples/bin/target_arm_bogus --addr 0x8610</span><br></pre></td></tr></table></figure>
+
+<p>0x8610 这个地址就是你要去混淆的函数的地址.</p>
+<p>来看看前后对比图</p>
+<p>混淆的代码如下<br><img src="/images/img_48.png" alt="img_1.png"></p>
+<p>去混淆后<br><img src="/images/img_49.png" alt="img_1.png"></p>
+<p>可以看到效果杠杠的.</p>
+<p>我们试试 debogus, 对libbxxxxprotect.so 去虚假控制流</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 debogus.py -f samples/bin/libbaiduprotect.so --addr 0x88060</span><br></pre></td></tr></table></figure>
+
+<p>报错, 跑不通, 原因是 target_function.transition_graph 中的 target_function 是NoneType类型. </p>
+<p>试试deflat, 对libbxxxxprotect.so 去控制流平坦化</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 deflat.py -f samples/bin/libbaiduprotect.so --addr 0x88060</span><br></pre></td></tr></table></figure>
+
+<p>然后用ida64 打开看看<br><img src="/images/img_50.png" alt="img_1.png"><br>可以看到部分分支没有去掉, 我们用老办法, 新增segment 设置只读, 并且 patch dword &#x3D; 0, 操作后我们再来看看效果</p>
+<p><img src="/images/img_51.png" alt="img_1.png"><br>可以看到有一丢丢效果 但不多. 并没有去除掉 swith case。</p>
+<h4 id="我们再来试试另一个大佬写的-deobf-https-github-com-maiyao1988-deobf"><a href="#我们再来试试另一个大佬写的-deobf-https-github-com-maiyao1988-deobf" class="headerlink" title="我们再来试试另一个大佬写的 deobf  https://github.com/maiyao1988/deobf"></a>我们再来试试另一个大佬写的 deobf  <a target="_blank" rel="noopener" href="https://github.com/maiyao1988/deobf">https://github.com/maiyao1988/deobf</a></h4><p>试了上面两个 so文件 都报错 AssertionError: block CodeBlock(0x00088060, 0x00000000) size &lt;&#x3D;0<br>调试了一下是 cfg.create_cfg 有问题, 应该是没有解析出 cfg</p>
+<p>仔细看了文档 貌似还需要trace文件. 故pass</p>
+<h3 id="总结-deflat-还是很好用的"><a href="#总结-deflat-还是很好用的" class="headerlink" title="总结 deflat 还是很好用的"></a>总结 deflat 还是很好用的</h3><p>代码地址 <a target="_blank" rel="noopener" href="https://github.com/cq674350529/deflat">仓库地址</a></p>
+<p>亲测使用 deflat还原这个so, 还原效果如下<br>还原前</p>
+<p><img src="/images/img_52.png" alt="img_1.png"></p>
+<p>还原后<br><img src="/images/img_53.png" alt="img_1.png"></p>
+<p>感兴趣的可以试试 <a href="/downloads/check_passwd_arm64_flat">点击下载</a> </p>
+<p>支持arm32, arm64, 但本人用deflat 去某微b fla报错了, 应该是函数中穿插一些其他的函数调用导致的.</p>
+<p>接下来试试ida的处理ollvm的插件 obpo-plugin. 看看效果如何.<br><a target="_blank" rel="noopener" href="https://github.com/obpo-project/obpo-plugin">github地址</a></p>
+<p>装好后, 发现标记分发快后, 直接提示如下<br><img src="/images/img_54.png" alt="img_1.png"></p>
+<p>应该是证书导致的, 目前无法使用. 暂时放弃. </p>
+<h5 id="试试看另外一个插件-https-gitlab-com-eshard-d810"><a href="#试试看另外一个插件-https-gitlab-com-eshard-d810" class="headerlink" title="试试看另外一个插件 https://gitlab.com/eshard/d810"></a>试试看另外一个插件 <a target="_blank" rel="noopener" href="https://gitlab.com/eshard/d810">https://gitlab.com/eshard/d810</a></h5><p>安装使用过程中可能会遇到 pyqt5的问题， 解决方案参考<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_49283465/article/details/127991431">https://blog.csdn.net/qq_49283465/article/details/127991431</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/no1xium/article/details/126764041">https://blog.csdn.net/no1xium/article/details/126764041</a></p>
+<p>按照上面的解决完后, 进入python解释器看看是否能否导入PyQt5, 发现是可以的, 但是ida 却报错  from PyQt5 import QtCore, QtWidgets, QtGui 找不到模块<br>猜测是ida 没有加载 python的模块, 看到ida的其他输出如下<br>WARNING: Python 3 is not configured (Python3TargetDLL value is not set).</p>
+<p>意思是 python 3 没有配置. 解决方案 打开 IDA 的安装路径，在根目录下有一个 idapyswitch.exe 运行一下, 选择你的python版本.<br>然后可以正常使用了</p>
+<p>来看看处理前的 cfg图<br><img src="/images/img_56.png" alt="img_1.png"></p>
+<p>ctrl + shift + D 唤出界面如下:<br><img src="/images/img_55.png" alt="img_1.png"></p>
+<p>点击start 等待一会. 然后再次F5 看看效果</p>
+<p><img src="/images/img_57.png" alt="img_1.png"></p>
+<p>尼玛， 一点效果都没有, 好吧 扔回收站了.  </p>
+<p>等等 别放弃, 貌似刚刚只是选择的 JumpFixer, 也就是对跳转的修复. 这让我想起了某音的花枝零， 或许可以用这个插件修复一下. 后面再进行测试.<br>我们这里选择 unflatting,  while 这么多循环一看就是控制流平坦化<br><img src="/images/img_58.png" alt="img_1.png"></p>
+<p>然后点击 start 再次试试F5</p>
+<p><img src="/images/img_59.png" alt="img_1.png"></p>
+<p>双击6666666</p>
+<p>我们用 D810 处理一下 某风控 libbxxdxprotect.so 看看.<br>处理时间会稍稍有点久. 用了大概几分钟, 我们来看看效果</p>
+<p><img src="/images/img_60.png" alt="img_1.png"></p>
+<p>可以看到还是有一定效果的. D810在面对某成熟风控sdk也依然能发挥一定辅助分析的作用. 从反编译的c语言伪代码来看, 起码bcf处理的很好. deflat 也有一定的效果<br>我想说 D810 yyds</p>
+<p>我们再试试另外一个社交类app某博的so文件, 随便找个函数</p>
+<p>还原前<br><img src="/images/img_62.png" alt="img_1.png"></p>
+<p>还原后<br><img src="/images/img_61.png" alt="img_1.png"></p>
+<p>再一次想说 D810 yyyyyyyyyyyyyyyds</p>
+<p>总结一下, 目前试了这么多处理 ollvm 的插件, 貌似deflat 和 d810 这两个是比较有效的. 而对于bcf, 可以使用deflat开源项目中的bogus脚本, 也可以手动 patch + 新增segment + 设置只读的方式来去混淆.<br>后续遇到ollvm 先 deflat 再d810, 否则就手动分析, 再或者通过unicorn  unidbg 或者 frida-stalker 动态调试来确定执行流</p>
 
     </div>
 
@@ -245,7 +316,10 @@
     <a href="/2024/08/12/frida-stalker-trace%E4%BD%BF%E7%94%A8/" rel="prev" title="frida-stalker-trace使用">
       <i class="fa fa-chevron-left"></i> frida-stalker-trace使用
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2024/08/29/%E6%9F%90%E8%A7%86%E9%A2%91%E7%B1%BBapp%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%88%86%E6%9E%90/" rel="next" title="某视频类app花指令分析">
+      某视频类app花指令分析 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -304,7 +378,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%88%E6%9D%A5%E7%9C%8B%E7%9C%8B%E6%95%88%E6%9E%9C%E5%9B%BE"><span class="nav-number">1.</span> <span class="nav-text">先来看看效果图</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%95%E8%BF%87%E5%89%8D-F5-%E9%95%BF%E8%BF%99%E4%B8%AA%E6%A0%B7%E5%AD%90-%E6%9C%89%E4%B8%80%E9%83%A8%E5%88%86bcf-bugus-control-flow-%E8%99%9A%E5%81%87%E6%8E%A7%E5%88%B6%E6%B5%81-%E7%9A%84%E7%97%95%E8%BF%B9"><span class="nav-number">1.0.0.1.</span> <span class="nav-text">绕过前 F5 长这个样子, 有一部分bcf(bugus control flow 虚假控制流) 的痕迹.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9B%E5%85%A5%E7%9C%8B%E7%9C%8B-dword-C0118-dword-C0120-%E5%90%8C%E7%90%86"><span class="nav-number">1.0.0.2.</span> <span class="nav-text">进入看看 dword_C0118 (dword_C0120 同理)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%AF%E4%BB%A5%E7%9C%8B%E5%88%B0%E6%98%AF%E5%BC%95%E7%94%A8%E4%BA%86bss%E6%AE%B5%E4%B8%8A%E7%9A%84%E6%95%B0%E6%8D%AE-%E6%88%91%E4%BB%AC%E7%9F%A5%E9%81%93bss%E6%AE%B5%E4%B8%8A%E5%AD%98%E6%94%BE%E7%9A%84%E6%98%AF%E6%9C%AA%E5%88%9D%E5%A7%8B%E5%8C%96%E7%9A%84%E5%85%A8%E5%B1%80%E5%8F%98%E9%87%8F%E5%92%8C%E6%9C%AA%E5%88%9D%E5%A7%8B%E5%8C%96%E7%9A%84%E5%B1%80%E9%83%A8%E9%9D%99%E6%80%81%E5%8F%98%E9%87%8F-%E6%9C%AA%E5%88%9D%E5%A7%8B%E5%8C%96%E7%9A%84%E5%85%A8%E5%B1%80%E5%8F%98%E9%87%8F%E5%92%8C%E6%9C%AA%E5%88%9D%E5%A7%8B%E5%8C%96%E7%9A%84%E5%B1%80%E9%83%A8%E9%9D%99%E6%80%81%E5%8F%98%E9%87%8F%E9%BB%98%E8%AE%A4%E5%80%BC%E6%98%AF0"><span class="nav-number">1.0.0.3.</span> <span class="nav-text">可以看到是引用了bss段上的数据. 我们知道bss段上存放的是未初始化的全局变量和未初始化的局部静态变量. 未初始化的全局变量和未初始化的局部静态变量默认值是0.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%8D%E6%9D%A5%E4%B8%AA%E7%BB%83%E4%B9%A0-%E8%BF%99%E6%98%AF%E4%B8%80%E4%B8%AA32%E4%BD%8D%E7%9A%84so"><span class="nav-number">1.0.0.4.</span> <span class="nav-text">再来个练习, 这是一个32位的so</span></a></li></ol></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%88%E6%9D%A5%E7%9C%8B%E7%9C%8B%E6%95%88%E6%9E%9C%E5%9B%BE"><span class="nav-number">1.</span> <span class="nav-text">先来看看效果图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%8D%E6%9D%A5%E4%B8%AA%E7%BB%83%E4%B9%A0-%E8%BF%99%E6%98%AF%E4%B8%80%E4%B8%AA32%E4%BD%8D%E7%9A%84so"><span class="nav-number">2.</span> <span class="nav-text">再来个练习, 这是一个32位的so</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%88%91%E4%BB%AC%E5%86%8D%E6%9D%A5%E8%AF%95%E8%AF%95%E5%8F%A6%E4%B8%80%E4%B8%AA%E5%A4%A7%E4%BD%AC%E5%86%99%E7%9A%84-deobf-https-github-com-maiyao1988-deobf"><span class="nav-number">3.</span> <span class="nav-text">我们再来试试另一个大佬写的 deobf  https:&#x2F;&#x2F;github.com&#x2F;maiyao1988&#x2F;deobf</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93-deflat-%E8%BF%98%E6%98%AF%E5%BE%88%E5%A5%BD%E7%94%A8%E7%9A%84"><span class="nav-number"></span> <span class="nav-text">总结 deflat 还是很好用的</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%AF%95%E8%AF%95%E7%9C%8B%E5%8F%A6%E5%A4%96%E4%B8%80%E4%B8%AA%E6%8F%92%E4%BB%B6-https-gitlab-com-eshard-d810"><span class="nav-number">0.1.</span> <span class="nav-text">试试看另外一个插件 https:&#x2F;&#x2F;gitlab.com&#x2F;eshard&#x2F;d810</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -318,7 +392,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-count">10</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
