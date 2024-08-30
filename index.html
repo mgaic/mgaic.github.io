@@ -177,7 +177,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-08-30 16:21:44" itemprop="dateModified" datetime="2024-08-30T16:21:44+08:00">2024-08-30</time>
+                <time title="Modified: 2024-08-30 18:37:15" itemprop="dateModified" datetime="2024-08-30T18:37:15+08:00">2024-08-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -280,6 +280,7 @@
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">for addr in matches:</span><br><span class="line">    makeInsn(addr)</span><br><span class="line">    jump_addr = getJumpAddress(addr)</span><br><span class="line">    ins_string = f&#x27;b hex(jump_addr)&#x27;</span><br><span class="line">    bCode = generate(ins_string, addr)</span><br><span class="line">    nopCode = generate(&#x27;nop&#x27;, addr)</span><br><span class="line">    ida_bytes.patch_bytes(addr, bytes(bCode))</span><br><span class="line">    ida_bytes.patch_bytes(addr + 4, bytes(nopCode) * 9)</span><br></pre></td></tr></table></figure>
 
 <p>patch 后发现没有花指令的痕迹了. ida搜索一下  STP X0, X1, [SP,#var_20]!, 发现空空如也<br><img src="/images/img_85.png" alt="img_1.png"></p>
+<h5 id="来看看处理了-花指令后的-jni-onload"><a href="#来看看处理了-花指令后的-jni-onload" class="headerlink" title="来看看处理了 花指令后的 jni_onload"></a>来看看处理了 花指令后的 jni_onload</h5><p><img src="/images/img_86.png" alt="img_1.png"></p>
 <p>yyds</p>
 
       
