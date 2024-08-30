@@ -22,7 +22,7 @@
 
   <meta name="description" content="我们自己写了一个app, 现在对这个app进行trace先看看so名 1cat &#x2F;proc&#x2F;$(pidof com.zj.my_md5 )&#x2F;maps | grep checkout   这是一个 64位的so. 名为 libcheckout.so ida 打开看看目标so  现在就使用 stalker 对这个函数进行trace 12345678910111213141516171819202122">
 <meta property="og:type" content="article">
-<meta property="og:title" content="frida-stalker-trace使用">
+<meta property="og:title" content="frida-stalker-trace 使用并实战某音">
 <meta property="og:url" content="http://example.com/2024/08/12/frida-stalker-trace%E4%BD%BF%E7%94%A8/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="我们自己写了一个app, 现在对这个app进行trace先看看so名 1cat &#x2F;proc&#x2F;$(pidof com.zj.my_md5 )&#x2F;maps | grep checkout   这是一个 64位的so. 名为 libcheckout.so ida 打开看看目标so  现在就使用 stalker 对这个函数进行trace 12345678910111213141516171819202122">
@@ -33,7 +33,7 @@
 <meta property="og:image" content="http://example.com/images/img_36.png">
 <meta property="og:image" content="http://example.com/images/img_37.png">
 <meta property="article:published_time" content="2024-08-12T03:10:24.000Z">
-<meta property="article:modified_time" content="2024-08-12T10:42:05.515Z">
+<meta property="article:modified_time" content="2024-08-30T08:28:32.920Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://example.com/images/img_33.png">
@@ -51,7 +51,7 @@
   };
 </script>
 
-  <title>frida-stalker-trace使用 | Hexo</title>
+  <title>frida-stalker-trace 使用并实战某音 | Hexo</title>
   
 
 
@@ -170,7 +170,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          frida-stalker-trace使用
+          frida-stalker-trace 使用并实战某音
         </h1>
 
         <div class="post-meta">
@@ -179,10 +179,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2024-08-12 11:10:24 / Modified: 18:42:05" itemprop="dateCreated datePublished" datetime="2024-08-12T11:10:24+08:00">2024-08-12</time>
+              <time title="Created: 2024-08-12 11:10:24" itemprop="dateCreated datePublished" datetime="2024-08-12T11:10:24+08:00">2024-08-12</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-08-30 16:28:32" itemprop="dateModified" datetime="2024-08-30T16:28:32+08:00">2024-08-30</time>
+              </span>
 
           
 
@@ -237,8 +243,8 @@
       <i class="fa fa-chevron-left"></i> docker容器下对运行中python进程调试踩坑记录(mgaic亲踩)
     </a></div>
       <div class="post-nav-item">
-    <a href="/2024/08/26/ollvm-bcf-bapass/" rel="next" title="某大厂风控 ollvm bcf fla学习记录">
-      某大厂风控 ollvm bcf fla学习记录 <i class="fa fa-chevron-right"></i>
+    <a href="/2024/08/26/ollvm-bcf-bapass/" rel="next" title="ollvm bcf fla 学习记录并实战某博">
+      ollvm bcf fla 学习记录并实战某博 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -315,6 +321,11 @@
           <span class="site-state-item-count">10</span>
           <span class="site-state-item-name">posts</span>
         </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">categories</span></a>
       </div>
   </nav>
 </div>
