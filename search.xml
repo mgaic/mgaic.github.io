@@ -1,6 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>docker容器下对运行中python进程调试踩坑记录(mgaic亲踩)</title>
+    <url>/2024/08/01/docker%E5%AE%B9%E5%99%A8%E4%B8%8B%E5%AF%B9%E8%BF%90%E8%A1%8C%E4%B8%ADpython%E8%BF%9B%E7%A8%8B%E8%B0%83%E8%AF%95%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/</url>
+    <content><![CDATA[<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>线上的项目是使用python3.6.15写的, 跑在docker下</p>
+<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><p>某个进程执行巨慢，通过日志定位到了 if else, 但是if下的代码有日志, else 处并没有打日志, 所以想看看else 处到底发生了什么.</p>
+<span id="more"></span>
+<h3 id="问题解决"><a href="#问题解决" class="headerlink" title="问题解决"></a>问题解决</h3><h4 id="尝试方案一-gdb-调试"><a href="#尝试方案一-gdb-调试" class="headerlink" title="尝试方案一. gdb 调试."></a>尝试方案一. gdb 调试.</h4><h4 id="安装-gdb"><a href="#安装-gdb" class="headerlink" title="安装 gdb"></a>安装 gdb</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">没权限记录加<span class="built_in">sudo</span></span></span><br><span class="line">apt upgrade</span><br><span class="line">apt update</span><br><span class="line">apt install gdb</span><br><span class="line">apt install python3-dbg</span><br><span class="line">gdb python pid</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="gdb-无法附加-可能是安全策略导致的"><a href="#gdb-无法附加-可能是安全策略导致的" class="headerlink" title="gdb 无法附加, 可能是安全策略导致的."></a>gdb 无法附加, 可能是安全策略导致的.</h4><p>尝试 echo 0 &#x2F;proc&#x2F;sys&#x2F;kernel&#x2F;yama&#x2F;ptrace_scope<br>但报错 只读文件系统.<br>一番搜索后, 发现可以在进入容器命令中加个参数即可解决.</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker exec --privileged -ti ebbed4cb3xxxx bash</span><br></pre></td></tr></table></figure>
+
+<h4 id="解决后再次附加进程-结果如下"><a href="#解决后再次附加进程-结果如下" class="headerlink" title="解决后再次附加进程, 结果如下"></a>解决后再次附加进程, 结果如下</h4><p><img src="/images/img_29.png" alt="img_1.png"></p>
+<p>一番搜索后猜测是原因可能是 原进程是root用户启动的，或者该进程是root启动的. 暂时先忽略这个报错.</p>
+<h4 id="看看-bt-命令-打印一下堆栈"><a href="#看看-bt-命令-打印一下堆栈" class="headerlink" title="看看 bt 命令 打印一下堆栈"></a>看看 bt 命令 打印一下堆栈</h4><p><img src="/images/img_30.png" alt="img_1.png"></p>
+<h4 id="解释型语言，-这个堆栈，并不是我理想的样子"><a href="#解释型语言，-这个堆栈，并不是我理想的样子" class="headerlink" title="解释型语言， 这个堆栈，并不是我理想的样子."></a>解释型语言， 这个堆栈，并不是我理想的样子.</h4><h4 id="随即尝试方案二-真香"><a href="#随即尝试方案二-真香" class="headerlink" title="随即尝试方案二, 真香."></a>随即尝试方案二, 真香.</h4><p>同样需要安装 gdb、python3-dbg， 上面我们已经安装过了.</p>
+<h4 id="安装主次主角-pyrasite"><a href="#安装主次主角-pyrasite" class="headerlink" title="安装主次主角 pyrasite"></a>安装主次主角 pyrasite</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">pip install pyrasite</span><br></pre></td></tr></table></figure>
+
+<p>同样需要 echo 0 | sudo tee &#x2F;proc&#x2F;sys&#x2F;kernel&#x2F;yama&#x2F;ptrace_scope， 如果是容器下, 只需要 docker exec 时候, 加上 –privileged 命令就好.</p>
+<p>然后执行 pyrasite-shell pid 附加到你要调试的进程中</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">pyrasite-shell your_need_attach_process_id</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/img_31.png" alt="img_1.png"></p>
+<p>可以看到已经成功附加到了原进程中, 并且打印Pid, 已经是原进程的pid.</p>
+<p><img src="/images/img_32.png" alt="img_1.png"><br>查看一下本地变量还有全局变量，打印一下本地变量 i的值，发现是变化的. 如果你的程序中有 redis_conn 这些，也应该可以执行 redis_conn.exist() 等复杂操作.</p>
+<p>调试完成后, Use quit() or Ctrl-D (i.e. EOF) to exit, 这种退出方式不会影响原进程, 原进程健壮地活着. 手动狗头.jpg</p>
+<p>done!!!</p>
+]]></content>
+  </entry>
+  <entry>
     <title>Hello World</title>
     <url>/2024/07/12/hello-world/</url>
     <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
@@ -19,10 +48,35 @@
 ]]></content>
   </entry>
   <entry>
+    <title>使用 stackplz 辅助分析 anti-frida(亲测可行)</title>
+    <url>/2024/07/12/stackplz-trace/</url>
+    <content><![CDATA[<h2 id="使用-stackplz-过anti-frida"><a href="#使用-stackplz-过anti-frida" class="headerlink" title="使用 stackplz 过anti-frida"></a>使用 stackplz 过anti-frida</h2><h4 id="一般检测frida-比较常用的一个函数是-strstr-这个函数类似于-isSubString-判断子串"><a href="#一般检测frida-比较常用的一个函数是-strstr-这个函数类似于-isSubString-判断子串" class="headerlink" title="一般检测frida 比较常用的一个函数是 strstr. 这个函数类似于 isSubString. 判断子串"></a>一般检测frida 比较常用的一个函数是 strstr. 这个函数类似于 isSubString. 判断子串</h4><h4 id="我们使用-stackplz-hook-strstr-看看是谁在调用strstr"><a href="#我们使用-stackplz-hook-strstr-看看是谁在调用strstr" class="headerlink" title="我们使用 stackplz hook strstr 看看是谁在调用strstr"></a>我们使用 stackplz hook strstr 看看是谁在调用strstr</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./stackplz -n tv.danmaku.bili -l /apex/com.android.runtime/lib64/bionic/libc.so -w strstr --stack</span><br></pre></td></tr></table></figure>
+
+<h4 id="执行结果如下"><a href="#执行结果如下" class="headerlink" title="执行结果如下"></a>执行结果如下</h4><p><img src="/images/img_2.png" alt="img_1.png"></p>
+<h4 id="看看strstr的参数-到底是不是针对一些环境的检测"><a href="#看看strstr的参数-到底是不是针对一些环境的检测" class="headerlink" title="看看strstr的参数, 到底是不是针对一些环境的检测"></a>看看strstr的参数, 到底是不是针对一些环境的检测</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">/stackplz -n tv.danmaku.bili -l /apex/com.android.runtime/lib64/bionic/libc.so -w strstr[str:x0,str:x1]  -o tmp.log</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="结果如下"><a href="#结果如下" class="headerlink" title="结果如下"></a>结果如下</h4><p><img src="/images/img_3.png" alt="img_1.png"></p>
+<h4 id="google-一搜"><a href="#google-一搜" class="headerlink" title="google 一搜"></a>google 一搜</h4><p><img src="/images/img_4.png" alt="img_1.png"></p>
+<h4 id="大概率就是-libmxxxoxxdsec-so-在检测frida"><a href="#大概率就是-libmxxxoxxdsec-so-在检测frida" class="headerlink" title="大概率就是 libmxxxoxxdsec.so 在检测frida"></a>大概率就是 libmxxxoxxdsec.so 在检测frida</h4><h4 id="从hook-strstr的调用堆栈里我们可以看到是从-thread-start-开始的。-所以我们hook-thread-create-看看-创建线程比较早，所以先关掉app-执行命令后再打开app"><a href="#从hook-strstr的调用堆栈里我们可以看到是从-thread-start-开始的。-所以我们hook-thread-create-看看-创建线程比较早，所以先关掉app-执行命令后再打开app" class="headerlink" title="从hook strstr的调用堆栈里我们可以看到是从 thread_start 开始的。 所以我们hook thread_create 看看, 创建线程比较早，所以先关掉app, 执行命令后再打开app"></a>从hook strstr的调用堆栈里我们可以看到是从 thread_start 开始的。 所以我们hook thread_create 看看, 创建线程比较早，所以先关掉app, 执行命令后再打开app</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./stackplz -n tv.danmaku.bili -l /apex/com.android.runtime/lib64/bionic/libc.so -w pthread_create --stack -o tmp.log</span><br></pre></td></tr></table></figure>
+
+<h4 id="可以看到结果-有13处"><a href="#可以看到结果-有13处" class="headerlink" title="可以看到结果, 有13处"></a>可以看到结果, 有13处</h4><p><img src="/images/img_5.png" alt="img_1.png"></p>
+<h4 id="ida打开-看看-0x1d304"><a href="#ida打开-看看-0x1d304" class="headerlink" title="ida打开 看看 0x1d304"></a>ida打开 看看 0x1d304</h4><p><img src="/images/img_6.png" alt="img_1.png"></p>
+<h4 id="F5-看看"><a href="#F5-看看" class="headerlink" title="F5 看看"></a>F5 看看</h4><p><img src="/images/img_7.png" alt="img_1.png"></p>
+<p>这里很像是在创建线程。 我们试试patch, 强行让它不创建。 把 BLR X19 指令改为 nop. 在此之前还有一个问题， patch后会不会崩溃？<br>arm64 函数调用约定 返回值给x0, 我们看看后续有没有用到x0. 如果没用到我们可以这么改, 用到了程序可能就会崩溃</p>
+<h4 id="看汇编"><a href="#看汇编" class="headerlink" title="看汇编"></a>看汇编</h4><p><img src="/images/img_8.png" alt="img_1.png"></p>
+<h4 id="发现并没有用到返回值。-所以我们打开-https-armconverter-com"><a href="#发现并没有用到返回值。-所以我们打开-https-armconverter-com" class="headerlink" title="发现并没有用到返回值。 所以我们打开 https://armconverter.com/"></a>发现并没有用到返回值。 所以我们打开 <a href="https://armconverter.com/">https://armconverter.com/</a></h4><p>看看nop 对应的机器码</p>
+<p><img src="/images/img_9.png" alt="img_1.png"></p>
+<p>用 010editor 把 BL X19 对应的机器码全部改为 1F2003D5</p>
+<h4 id="我一共patch了三处-然后把patch后的-so文件-push-到-data-app-1m1hzMqd9svUirtnyTGHvA-tv-xxxxx-xxxx-rMRttoSdjUufKzwDHC3FtQ-lib-arm64"><a href="#我一共patch了三处-然后把patch后的-so文件-push-到-data-app-1m1hzMqd9svUirtnyTGHvA-tv-xxxxx-xxxx-rMRttoSdjUufKzwDHC3FtQ-lib-arm64" class="headerlink" title="我一共patch了三处. 然后把patch后的 so文件 push 到 &#x2F;data&#x2F;app&#x2F;~~1m1hzMqd9svUirtnyTGHvA&#x3D;&#x3D;&#x2F;tv.xxxxx.xxxx-rMRttoSdjUufKzwDHC3FtQ&#x3D;&#x3D;&#x2F;lib&#x2F;arm64&#x2F;"></a>我一共patch了三处. 然后把patch后的 so文件 push 到 &#x2F;data&#x2F;app&#x2F;~~1m1hzMqd9svUirtnyTGHvA&#x3D;&#x3D;&#x2F;tv.xxxxx.xxxx-rMRttoSdjUufKzwDHC3FtQ&#x3D;&#x3D;&#x2F;lib&#x2F;arm64&#x2F;</h4><h4 id="然后frida-打开还是崩溃-发现app-又用了其他另外一个地方的-sec-so文件-把-so文件复制到两个目录下以后。发现frida-可以成功附加-最好改一下so文件的权限为-755-跟原先一致"><a href="#然后frida-打开还是崩溃-发现app-又用了其他另外一个地方的-sec-so文件-把-so文件复制到两个目录下以后。发现frida-可以成功附加-最好改一下so文件的权限为-755-跟原先一致" class="headerlink" title="然后frida 打开还是崩溃. 发现app 又用了其他另外一个地方的 sec.so文件. 把 so文件复制到两个目录下以后。发现frida 可以成功附加.  最好改一下so文件的权限为 755. 跟原先一致"></a>然后frida 打开还是崩溃. 发现app 又用了其他另外一个地方的 sec.so文件. 把 so文件复制到两个目录下以后。发现frida 可以成功附加.  最好改一下so文件的权限为 755. 跟原先一致</h4>]]></content>
+  </entry>
+  <entry>
     <title>ollvm bcf fla 学习记录并实战某博</title>
     <url>/2024/08/26/ollvm-bcf-bapass/</url>
     <content><![CDATA[<p>样例: libbxxdxprotect.so</p>
-<h4 id="先来看看效果图"><a href="#先来看看效果图" class="headerlink" title="先来看看效果图"></a>先来看看效果图</h4><p>绕过前 F5 长这个样子, 有一部分bcf(bugus control flow 虚假控制流) 的痕迹.<br><img src="/images/img_39.png" alt="img_1.png"></p>
+<h4 id="前后对比图"><a href="#前后对比图" class="headerlink" title="前后对比图"></a>前后对比图</h4><p>绕过前 F5 长这个样子, 有一部分bcf(bugus control flow 虚假控制流) 的痕迹. </p>
+<span id="more"></span>
+<p><img src="/images/img_39.png" alt="img_1.png"></p>
 <p>这些变量决定着分支的走向.</p>
 <p>点击进入看看变量 dword_C0118 (dword_C0120 同理)<br><img src="/images/img_40.png" alt="img_1.png"></p>
 <p>可以看到是引用了bss段上的数据. 我们知道bss段上存放的是未初始化的全局变量和未初始化的局部静态变量. 未初始化的全局变量和未初始化的局部静态变量默认值是0.</p>
@@ -94,35 +148,12 @@
 <p>我们用 D810 处理一下 某风控 libbxxdxprotect.so 看看.<br>处理时间会稍稍有点久. 用了大概几分钟, 我们来看看效果</p>
 <p><img src="/images/img_60.png" alt="img_1.png"></p>
 <p>可以看到还是有一定效果的. D810在面对某成熟风控sdk也依然能发挥一定辅助分析的作用. 从反编译的c语言伪代码来看, 起码bcf处理的很好. deflat 也有一定的效果<br>我想说 D810 yyds</p>
-<p>我们再试试另外一个社交类app某博的so文件, 随便找个函数</p>
+<h4 id="实战"><a href="#实战" class="headerlink" title="实战"></a>实战</h4><p>我们再试试另外一个社交类app某博的so文件, 随便找个函数</p>
 <p>还原前<br><img src="/images/img_62.png" alt="img_1.png"></p>
 <p>还原后<br><img src="/images/img_61.png" alt="img_1.png"></p>
 <p>再一次想说 D810 yyyyyyyyyyyyyyyds</p>
 <p>总结一下, 目前试了这么多处理 ollvm 的插件, 貌似deflat 和 d810 这两个是比较有效的. 而对于bcf, 可以使用deflat开源项目中的bogus脚本, 也可以手动 patch + 新增segment + 设置只读的方式来去混淆.<br>后续遇到ollvm 先 deflat 再d810, 否则就手动分析, 再或者通过unicorn  unidbg 或者 frida-stalker 动态调试来确定执行流</p>
 ]]></content>
-  </entry>
-  <entry>
-    <title>使用 stackplz 辅助分析 anti-frida(亲测可行)</title>
-    <url>/2024/07/12/stackplz-trace/</url>
-    <content><![CDATA[<h2 id="使用-stackplz-过anti-frida"><a href="#使用-stackplz-过anti-frida" class="headerlink" title="使用 stackplz 过anti-frida"></a>使用 stackplz 过anti-frida</h2><h4 id="一般检测frida-比较常用的一个函数是-strstr-这个函数类似于-isSubString-判断子串"><a href="#一般检测frida-比较常用的一个函数是-strstr-这个函数类似于-isSubString-判断子串" class="headerlink" title="一般检测frida 比较常用的一个函数是 strstr. 这个函数类似于 isSubString. 判断子串"></a>一般检测frida 比较常用的一个函数是 strstr. 这个函数类似于 isSubString. 判断子串</h4><h4 id="我们使用-stackplz-hook-strstr-看看是谁在调用strstr"><a href="#我们使用-stackplz-hook-strstr-看看是谁在调用strstr" class="headerlink" title="我们使用 stackplz hook strstr 看看是谁在调用strstr"></a>我们使用 stackplz hook strstr 看看是谁在调用strstr</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./stackplz -n tv.danmaku.bili -l /apex/com.android.runtime/lib64/bionic/libc.so -w strstr --stack</span><br></pre></td></tr></table></figure>
-
-<h4 id="执行结果如下"><a href="#执行结果如下" class="headerlink" title="执行结果如下"></a>执行结果如下</h4><p><img src="/images/img_2.png" alt="img_1.png"></p>
-<h4 id="看看strstr的参数-到底是不是针对一些环境的检测"><a href="#看看strstr的参数-到底是不是针对一些环境的检测" class="headerlink" title="看看strstr的参数, 到底是不是针对一些环境的检测"></a>看看strstr的参数, 到底是不是针对一些环境的检测</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">/stackplz -n tv.danmaku.bili -l /apex/com.android.runtime/lib64/bionic/libc.so -w strstr[str:x0,str:x1]  -o tmp.log</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="结果如下"><a href="#结果如下" class="headerlink" title="结果如下"></a>结果如下</h4><p><img src="/images/img_3.png" alt="img_1.png"></p>
-<h4 id="google-一搜"><a href="#google-一搜" class="headerlink" title="google 一搜"></a>google 一搜</h4><p><img src="/images/img_4.png" alt="img_1.png"></p>
-<h4 id="大概率就是-libmxxxoxxdsec-so-在检测frida"><a href="#大概率就是-libmxxxoxxdsec-so-在检测frida" class="headerlink" title="大概率就是 libmxxxoxxdsec.so 在检测frida"></a>大概率就是 libmxxxoxxdsec.so 在检测frida</h4><h4 id="从hook-strstr的调用堆栈里我们可以看到是从-thread-start-开始的。-所以我们hook-thread-create-看看-创建线程比较早，所以先关掉app-执行命令后再打开app"><a href="#从hook-strstr的调用堆栈里我们可以看到是从-thread-start-开始的。-所以我们hook-thread-create-看看-创建线程比较早，所以先关掉app-执行命令后再打开app" class="headerlink" title="从hook strstr的调用堆栈里我们可以看到是从 thread_start 开始的。 所以我们hook thread_create 看看, 创建线程比较早，所以先关掉app, 执行命令后再打开app"></a>从hook strstr的调用堆栈里我们可以看到是从 thread_start 开始的。 所以我们hook thread_create 看看, 创建线程比较早，所以先关掉app, 执行命令后再打开app</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./stackplz -n tv.danmaku.bili -l /apex/com.android.runtime/lib64/bionic/libc.so -w pthread_create --stack -o tmp.log</span><br></pre></td></tr></table></figure>
-
-<h4 id="可以看到结果-有13处"><a href="#可以看到结果-有13处" class="headerlink" title="可以看到结果, 有13处"></a>可以看到结果, 有13处</h4><p><img src="/images/img_5.png" alt="img_1.png"></p>
-<h4 id="ida打开-看看-0x1d304"><a href="#ida打开-看看-0x1d304" class="headerlink" title="ida打开 看看 0x1d304"></a>ida打开 看看 0x1d304</h4><p><img src="/images/img_6.png" alt="img_1.png"></p>
-<h4 id="F5-看看"><a href="#F5-看看" class="headerlink" title="F5 看看"></a>F5 看看</h4><p><img src="/images/img_7.png" alt="img_1.png"></p>
-<p>这里很像是在创建线程。 我们试试patch, 强行让它不创建。 把 BLR X19 指令改为 nop. 在此之前还有一个问题， patch后会不会崩溃？<br>arm64 函数调用约定 返回值给x0, 我们看看后续有没有用到x0. 如果没用到我们可以这么改, 用到了程序可能就会崩溃</p>
-<h4 id="看汇编"><a href="#看汇编" class="headerlink" title="看汇编"></a>看汇编</h4><p><img src="/images/img_8.png" alt="img_1.png"></p>
-<h4 id="发现并没有用到返回值。-所以我们打开-https-armconverter-com"><a href="#发现并没有用到返回值。-所以我们打开-https-armconverter-com" class="headerlink" title="发现并没有用到返回值。 所以我们打开 https://armconverter.com/"></a>发现并没有用到返回值。 所以我们打开 <a href="https://armconverter.com/">https://armconverter.com/</a></h4><p>看看nop 对应的机器码</p>
-<p><img src="/images/img_9.png" alt="img_1.png"></p>
-<p>用 010editor 把 BL X19 对应的机器码全部改为 1F2003D5</p>
-<h4 id="我一共patch了三处-然后把patch后的-so文件-push-到-data-app-1m1hzMqd9svUirtnyTGHvA-tv-xxxxx-xxxx-rMRttoSdjUufKzwDHC3FtQ-lib-arm64"><a href="#我一共patch了三处-然后把patch后的-so文件-push-到-data-app-1m1hzMqd9svUirtnyTGHvA-tv-xxxxx-xxxx-rMRttoSdjUufKzwDHC3FtQ-lib-arm64" class="headerlink" title="我一共patch了三处. 然后把patch后的 so文件 push 到 &#x2F;data&#x2F;app&#x2F;~~1m1hzMqd9svUirtnyTGHvA&#x3D;&#x3D;&#x2F;tv.xxxxx.xxxx-rMRttoSdjUufKzwDHC3FtQ&#x3D;&#x3D;&#x2F;lib&#x2F;arm64&#x2F;"></a>我一共patch了三处. 然后把patch后的 so文件 push 到 &#x2F;data&#x2F;app&#x2F;~~1m1hzMqd9svUirtnyTGHvA&#x3D;&#x3D;&#x2F;tv.xxxxx.xxxx-rMRttoSdjUufKzwDHC3FtQ&#x3D;&#x3D;&#x2F;lib&#x2F;arm64&#x2F;</h4><h4 id="然后frida-打开还是崩溃-发现app-又用了其他另外一个地方的-sec-so文件-把-so文件复制到两个目录下以后。发现frida-可以成功附加-最好改一下so文件的权限为-755-跟原先一致"><a href="#然后frida-打开还是崩溃-发现app-又用了其他另外一个地方的-sec-so文件-把-so文件复制到两个目录下以后。发现frida-可以成功附加-最好改一下so文件的权限为-755-跟原先一致" class="headerlink" title="然后frida 打开还是崩溃. 发现app 又用了其他另外一个地方的 sec.so文件. 把 so文件复制到两个目录下以后。发现frida 可以成功附加.  最好改一下so文件的权限为 755. 跟原先一致"></a>然后frida 打开还是崩溃. 发现app 又用了其他另外一个地方的 sec.so文件. 把 so文件复制到两个目录下以后。发现frida 可以成功附加.  最好改一下so文件的权限为 755. 跟原先一致</h4>]]></content>
   </entry>
   <entry>
     <title>stackplz hook art 记录</title>
@@ -163,10 +194,21 @@
 ]]></content>
   </entry>
   <entry>
+    <title>ecapture 基于ebpf抓包(亲测可行)</title>
+    <url>/2024/07/15/%E5%9F%BA%E4%BA%8Eebpf%E6%8A%93%E5%8C%85/</url>
+    <content><![CDATA[<h2 id="使用ecapture-抓包某物app-亲测可行"><a href="#使用ecapture-抓包某物app-亲测可行" class="headerlink" title="使用ecapture 抓包某物app, 亲测可行"></a>使用ecapture 抓包某物app, 亲测可行</h2><h4 id="ecapture-版本-0-8-3-手机-红米note-12t-pro-内核版本-5-10-android版本-android-13"><a href="#ecapture-版本-0-8-3-手机-红米note-12t-pro-内核版本-5-10-android版本-android-13" class="headerlink" title="ecapture 版本 0.8.3, 手机 红米note 12t pro, 内核版本 5.10. android版本 android 13"></a>ecapture 版本 0.8.3, 手机 红米note 12t pro, 内核版本 5.10. android版本 android 13</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">adb push ecapture /data/loca.tmp</span><br><span class="line">chmod +x ecapture</span><br><span class="line">./ecapture tls</span><br></pre></td></tr></table></figure>
+
+<h4 id="效果图"><a href="#效果图" class="headerlink" title="效果图"></a>效果图</h4><p>可以看到请求 响应都在里面了</p>
+<p><img src="/images/img_10.png" alt="img_1.png"></p>
+]]></content>
+  </entry>
+  <entry>
     <title>某音去除花指令</title>
     <url>/2024/07/19/%E6%9F%90%E8%A7%86%E9%A2%91%E5%8E%BB%E8%8A%B1/</url>
     <content><![CDATA[<h5 id="ida7-7-打开so文件-查看jni-onload"><a href="#ida7-7-打开so文件-查看jni-onload" class="headerlink" title="ida7.7 打开so文件 查看jni_onload"></a>ida7.7 打开so文件 查看jni_onload</h5><p><img src="/images/2024_0830/img.png" alt="img_1.png"></p>
 <p>底部有个内联汇编, 跳转到X1, 但ida没识别出来.<br>__asm { BR X1 }</p>
+<span id="more"></span>
+
 <p>看看汇编代码<br><img src="/images/2024_0830/img_1.png" alt="img_1.png"></p>
 <p>可以看到 BR X1<br>那x1来自哪里<br>x1 &#x3D; x0 + x34<br>那X0呢, sub_29D9C 这个函数点进去看看</p>
 <p><img src="/images/2024_0830/img_2.png" alt="img_1.png"></p>
@@ -221,18 +263,11 @@
       </categories>
   </entry>
   <entry>
-    <title>ecapture 基于ebpf抓包(亲测可行)</title>
-    <url>/2024/07/15/%E5%9F%BA%E4%BA%8Eebpf%E6%8A%93%E5%8C%85/</url>
-    <content><![CDATA[<h2 id="使用ecapture-抓包某物app-亲测可行"><a href="#使用ecapture-抓包某物app-亲测可行" class="headerlink" title="使用ecapture 抓包某物app, 亲测可行"></a>使用ecapture 抓包某物app, 亲测可行</h2><h4 id="ecapture-版本-0-8-3-手机-红米note-12t-pro-内核版本-5-10-android版本-android-13"><a href="#ecapture-版本-0-8-3-手机-红米note-12t-pro-内核版本-5-10-android版本-android-13" class="headerlink" title="ecapture 版本 0.8.3, 手机 红米note 12t pro, 内核版本 5.10. android版本 android 13"></a>ecapture 版本 0.8.3, 手机 红米note 12t pro, 内核版本 5.10. android版本 android 13</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">adb push ecapture /data/loca.tmp</span><br><span class="line">chmod +x ecapture</span><br><span class="line">./ecapture tls</span><br></pre></td></tr></table></figure>
-
-<h4 id="效果图"><a href="#效果图" class="headerlink" title="效果图"></a>效果图</h4><p>可以看到请求 响应都在里面了</p>
-<p><img src="/images/img_10.png" alt="img_1.png"></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>某视频类app 花指令、bcf、fla 处理</title>
+    <title>某视频类app 花指令、ollvm bcf、fla 处理</title>
     <url>/2024/08/29/%E6%9F%90%E8%A7%86%E9%A2%91%E7%B1%BBapp%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%88%86%E6%9E%90/</url>
     <content><![CDATA[<h5 id="笔者的ida版本是ida7-7-使用ida64-打开样本so-看看-Jni-onload-函数"><a href="#笔者的ida版本是ida7-7-使用ida64-打开样本so-看看-Jni-onload-函数" class="headerlink" title="笔者的ida版本是ida7.7, 使用ida64 打开样本so, 看看 Jni_onload 函数"></a>笔者的ida版本是ida7.7, 使用ida64 打开样本so, 看看 Jni_onload 函数</h5><p><img src="/images/img_63.png" alt="img_1.png"></p>
+<span id="more"></span>
+
 <p>可以看到只有一个jumpout<br>看看 jni_onload 函数的起始部分<br><img src="/images/img_65.png" alt="img_1.png"></p>
 <p>图中两个红色框框是一个对称的操作, stp 相当于 push to stack, 而 ldp 相当于 pop<br>STP             X0, X1, [SP,#-32]!<br>STP             X2, X30, [SP,#16]<br>这两行汇编是开栈操作. 执行后寄存器在堆栈中的分布如下:</p>
 <table>
@@ -342,34 +377,63 @@
 <h4 id="进入以后-发现调用了-l-a-hook-试试看"><a href="#进入以后-发现调用了-l-a-hook-试试看" class="headerlink" title="进入以后 发现调用了 l.a, hook 试试看"></a>进入以后 发现调用了 l.a, hook 试试看</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Java.perform(function ()&#123;</span><br><span class="line">    let l = Java.use(&quot;ms.bd.c.l&quot;);</span><br><span class="line">    let result = null;</span><br><span class="line">    l[&quot;a&quot;].implementation = function (i, i2, j, str, obj) &#123;</span><br><span class="line">        result = this[&quot;a&quot;](i, i2, j, str, obj);</span><br><span class="line">        if(i == 50331649)&#123;</span><br><span class="line">            console.log(&quot;result &quot;, Java.use(&#x27;org.json.JSONArray&#x27;).$new(result))</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        return result;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
 <h4 id="结果如下-2"><a href="#结果如下-2" class="headerlink" title="结果如下"></a>结果如下</h4><p><img src="/images/img_20.png" alt="img_1.png"></p>
-<h4 id="java层到此结束。实现在native层。-实际测试-frida-rpc-几十次后就不返回数据了-风控很强。"><a href="#java层到此结束。实现在native层。-实际测试-frida-rpc-几十次后就不返回数据了-风控很强。" class="headerlink" title="java层到此结束。实现在native层。 实际测试, frida rpc 几十次后就不返回数据了. 风控很强。"></a>java层到此结束。实现在native层。 实际测试, frida rpc 几十次后就不返回数据了. 风控很强。</h4><h3 id="待续…"><a href="#待续…" class="headerlink" title="待续…"></a>待续…</h3>]]></content>
+<h4 id="java层到此结束。实现在native层。-实际测试-frida-rpc-几十次后就不返回数据了-风控很强。"><a href="#java层到此结束。实现在native层。-实际测试-frida-rpc-几十次后就不返回数据了-风控很强。" class="headerlink" title="java层到此结束。实现在native层。 实际测试, frida rpc 几十次后就不返回数据了. 风控很强。"></a>java层到此结束。实现在native层。 实际测试, frida rpc 几十次后就不返回数据了. 风控很强。</h4>]]></content>
   </entry>
   <entry>
-    <title>docker容器下对运行中python进程调试踩坑记录(mgaic亲踩)</title>
-    <url>/2024/08/01/docker%E5%AE%B9%E5%99%A8%E4%B8%8B%E5%AF%B9%E8%BF%90%E8%A1%8C%E4%B8%ADpython%E8%BF%9B%E7%A8%8B%E8%B0%83%E8%AF%95%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/</url>
-    <content><![CDATA[<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>线上的项目是使用python3.6.15写的, 跑在docker下</p>
-<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><p>某个进程执行巨慢，通过日志定位到了 if else, 但是if下的代码有日志, else 处并没有打日志, 所以想看看else 处到底发生了什么.</p>
-<h3 id="问题解决"><a href="#问题解决" class="headerlink" title="问题解决"></a>问题解决</h3><h4 id="尝试方案一-gdb-调试"><a href="#尝试方案一-gdb-调试" class="headerlink" title="尝试方案一. gdb 调试."></a>尝试方案一. gdb 调试.</h4><h4 id="安装-gdb"><a href="#安装-gdb" class="headerlink" title="安装 gdb"></a>安装 gdb</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">没权限记录加<span class="built_in">sudo</span></span></span><br><span class="line">apt upgrade</span><br><span class="line">apt update</span><br><span class="line">apt install gdb</span><br><span class="line">apt install python3-dbg</span><br><span class="line">gdb python pid</span><br></pre></td></tr></table></figure>
+    <title>frida内存扫描以及关键代码定位.</title>
+    <url>/2024/09/11/frida-memery-scan/</url>
+    <content><![CDATA[<p>frida 发布了新特性, 支持硬件断点, 能更好的对内存区域进行扫描, 并快速定位出哪段代码读写了这片内存区域<br>感兴趣的可以看下<br>贴上地址 <a href="https://frida.re/news/">https://frida.re/news/</a></p>
+<span id="more"></span>
 
 
-<h4 id="gdb-无法附加-可能是安全策略导致的"><a href="#gdb-无法附加-可能是安全策略导致的" class="headerlink" title="gdb 无法附加, 可能是安全策略导致的."></a>gdb 无法附加, 可能是安全策略导致的.</h4><p>尝试 echo 0 &#x2F;proc&#x2F;sys&#x2F;kernel&#x2F;yama&#x2F;ptrace_scope<br>但报错 只读文件系统.<br>一番搜索后, 发现可以在进入容器命令中加个参数即可解决.</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker exec --privileged -ti ebbed4cb3xxxx bash</span><br></pre></td></tr></table></figure>
+<p>为了测试这个新特性, 我自己写了一个app<br><img src="/images/2024_0911/screenshot.png" alt="img_1.png"></p>
+<p>当用户点击按钮, 数字就减去1</p>
+<p>让我们来看看native层实现</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">static int num = 1000;</span><br><span class="line"></span><br><span class="line">extern &quot;C&quot;</span><br><span class="line">JNIEXPORT jint JNICALL</span><br><span class="line">Java_com_zj_my_1md5_MainActivity_getInt(JNIEnv *env, jobject thiz) &#123;</span><br><span class="line">    // TODO: implement getInt()</span><br><span class="line">    num = num - 1;</span><br><span class="line">    return num;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h4 id="解决后再次附加进程-结果如下"><a href="#解决后再次附加进程-结果如下" class="headerlink" title="解决后再次附加进程, 结果如下"></a>解决后再次附加进程, 结果如下</h4><p><img src="/images/img_29.png" alt="img_1.png"></p>
-<p>一番搜索后猜测是原因可能是 原进程是root用户启动的，或者该进程是root启动的. 暂时先忽略这个报错.</p>
-<h4 id="看看-bt-命令-打印一下堆栈"><a href="#看看-bt-命令-打印一下堆栈" class="headerlink" title="看看 bt 命令 打印一下堆栈"></a>看看 bt 命令 打印一下堆栈</h4><p><img src="/images/img_30.png" alt="img_1.png"></p>
-<h4 id="解释型语言，-这个堆栈，并不是我理想的样子"><a href="#解释型语言，-这个堆栈，并不是我理想的样子" class="headerlink" title="解释型语言， 这个堆栈，并不是我理想的样子."></a>解释型语言， 这个堆栈，并不是我理想的样子.</h4><h4 id="随即尝试方案二-真香"><a href="#随即尝试方案二-真香" class="headerlink" title="随即尝试方案二, 真香."></a>随即尝试方案二, 真香.</h4><p>同样需要安装 gdb、python3-dbg， 上面我们已经安装过了.</p>
-<h4 id="安装主次主角-pyrasite"><a href="#安装主次主角-pyrasite" class="headerlink" title="安装主次主角 pyrasite"></a>安装主次主角 pyrasite</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">pip install pyrasite</span><br></pre></td></tr></table></figure>
+<p>我们定义了一个全局静态变量, 每次用户点击button getInt函数就会被调用 并且返回-1后的值.</p>
+<p>接下来我们试试用frida的新特性来快速分析一下, 看看到底是哪里实现了 -1 的操作.<br>根据官方文档</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">let matches = [];</span><br><span class="line"></span><br><span class="line">function scan(pattern) &#123;</span><br><span class="line">  const locations = new Set();</span><br><span class="line">  console.log(123)</span><br><span class="line">  console.log(Process.enumerateMallocRanges())</span><br><span class="line">  for (const r of Process.enumerateMallocRanges()) &#123;</span><br><span class="line"></span><br><span class="line">    for (const match of Memory.scanSync(r.base, r.size, pattern)) &#123;</span><br><span class="line">      locations.add(match.address.toString());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  matches = Array.from(locations).map(ptr);</span><br><span class="line">  console.log(&#x27;Found&#x27;, matches.length, &#x27;matches&#x27;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function reduce(val) &#123;</span><br><span class="line">  matches = matches.filter(location =&gt; location.readU32() === val);</span><br><span class="line">  console.log(&#x27;Filtered down to:&#x27;);</span><br><span class="line">  console.log(JSON.stringify(matches));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">function patternFromU32(val) &#123;</span><br><span class="line">  return new MatchPattern(ptr(val).toMatchPattern().substr(0, 11));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>同样需要 echo 0 | sudo tee &#x2F;proc&#x2F;sys&#x2F;kernel&#x2F;yama&#x2F;ptrace_scope， 如果是容器下, 只需要 docker exec 时候, 加上 –privileged 命令就好.</p>
-<p>然后执行 pyrasite-shell pid 附加到你要调试的进程中</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">pyrasite-shell your_need_attach_process_id</span></span><br></pre></td></tr></table></figure>
+<p>我们执行一下 </p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">frida -U my_md5 -l 00bang/tt.js</span><br></pre></td></tr></table></figure>
 
-<p><img src="/images/img_31.png" alt="img_1.png"></p>
-<p>可以看到已经成功附加到了原进程中, 并且打印Pid, 已经是原进程的pid.</p>
-<p><img src="/images/img_32.png" alt="img_1.png"><br>查看一下本地变量还有全局变量，打印一下本地变量 i的值，发现是变化的. 如果你的程序中有 redis_conn 这些，也应该可以执行 redis_conn.exist() 等复杂操作.</p>
-<p>调试完成后, Use quit() or Ctrl-D (i.e. EOF) to exit, 这种退出方式不会影响原进程, 原进程健壮地活着. 手动狗头.jpg</p>
-<p>done!!!</p>
+<p>然后执行 </p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">scan(patternFromU32(1000))</span><br></pre></td></tr></table></figure>
+
+<p>结果如下<br><img src="/images/2024_0911/img.png" alt="img_1.png"></p>
+<p>搜了一圈, 应该是还不支持linux, 于是决定改写一下<br>主要是这段代码报错了 Process.enumerateMallocRanges(), 枚举所有的 malloc动态申请的堆内存.</p>
+<p>那这篇文章主题就应该是 frida 内存扫描.<br>我改写了一下代码, 如下</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">let matches = [];</span><br><span class="line"></span><br><span class="line">function scan(pattern) &#123;</span><br><span class="line">  const locations = new Set();</span><br><span class="line">  console.log(123)</span><br><span class="line">  console.log(Process.enumerateMallocRanges())</span><br><span class="line">  for (const r of Process.enumerateMallocRanges()) &#123;</span><br><span class="line"></span><br><span class="line">    for (const match of Memory.scanSync(r.base, r.size, pattern)) &#123;</span><br><span class="line">      locations.add(match.address.toString());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  matches = Array.from(locations).map(ptr);</span><br><span class="line">  console.log(&#x27;Found&#x27;, matches.length, &#x27;matches&#x27;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">function linux_scan(pattern) &#123;</span><br><span class="line">  const locations = new Set();</span><br><span class="line">  // console.log(123)</span><br><span class="line"></span><br><span class="line">  let target_so = null;</span><br><span class="line">  // const m = Process.enumerateModules()[0];</span><br><span class="line">  for (const process of Process.enumerateModules())&#123;</span><br><span class="line">    // console.log(&quot;process &quot;, process.name)</span><br><span class="line">    if(process.name.indexOf(&quot;libcheckout.so&quot;) != -1)&#123;</span><br><span class="line">    //if(process.name.indexOf(&quot;libmetasec_ml.so&quot;) != -1)&#123;</span><br><span class="line">      target_so = process</span><br><span class="line">      break;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  const m = target_so;</span><br><span class="line"></span><br><span class="line">  console.log(&quot;so ---&gt;&quot;+m.name)</span><br><span class="line">  // console.log(hexdump(m.base));</span><br><span class="line"></span><br><span class="line">  for (const match of Memory.scanSync(m.base, m.size, pattern)) &#123;</span><br><span class="line">    locations.add(match.address.toString());</span><br><span class="line">  &#125;</span><br><span class="line">  matches = Array.from(locations).map(ptr);</span><br><span class="line">  console.log(ptr(matches - m.base))</span><br><span class="line">  // console.log(matches.)</span><br><span class="line">  // Memory.writeU32(matches[0], 100)</span><br><span class="line">  console.log(&#x27;Found&#x27;, matches.length, &#x27;matches&#x27;);</span><br><span class="line">  console.log(&quot;打印 matches&quot;)</span><br><span class="line">  for(const match of matches)&#123;</span><br><span class="line">    // console.log(&quot;match &quot;, ptr(matches - m.base))</span><br><span class="line">    console.log(&quot;match &quot;, ptr(match - m.base))</span><br><span class="line">    console.log(hexdump(ptr(match)))</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function reduce(val) &#123;</span><br><span class="line">  matches = matches.filter(location =&gt; location.readU32() === val);</span><br><span class="line">  console.log(&#x27;Filtered down to:&#x27;);</span><br><span class="line">  console.log(JSON.stringify(matches));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">function patternFromU32(val) &#123;</span><br><span class="line">  return new MatchPattern(ptr(val).toMatchPattern().substr(0, 11));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后执行一下 </p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">linux_scan(patternFromU32(1000))</span><br></pre></td></tr></table></figure>
+
+<p>结果如下<br><img src="/images/2024_0911/img_1.png" alt="img_1.png"></p>
+<p>结果有四处 都匹配的1000, 1000的16进制是 0x3e8 跟图中正好匹配. 看来匹配的没毛病<br>然后我们点击一下按钮, 数字变成了 999, 然后执行一下 </p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">reduce(999)</span><br></pre></td></tr></table></figure>
+
+<p>这个功能太强大了, 类似于 CE以及 GG修改器中的搜索,  在上一次搜索的基础上再次搜索.<br>就相当于看看1000中的四处, 现在有几处变成了 999, 结果如下</p>
+<p><img src="/images/2024_0911/img_2.png" alt="img_1.png"></p>
+<p>可以看到只有一处. </p>
+<p>这时候可以该地址 减去 so的基地址.  可以通过 frida api 获取基址或者 通过下面代码查看基址</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cat /proc/$(pidof com.xx.my_md5 )/maps | grep checkout.so</span><br></pre></td></tr></table></figure>
+<p><img src="/images/2024_0911/img_3.png" alt="img_1.png"></p>
+<p>0x7ac95687d8 - 0x7ac951f000 &#x3D; 0x497d8</p>
+<p>ida打开 checkout.so 查看 0x497d8<br>可以看到 已初始化的全局静态变量 放在 .data 段, 并且值是 0x3E8, 对应十进制 1000</p>
+<p><img src="/images/2024_0911/img_4.png" alt="img_1.png"></p>
+<p>我们对该地址添加一个写断点, 看看哪里往该地址写入数据</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">function installWatchpoint(address, size, conditions) &#123;</span><br><span class="line">  const thread = Process.enumerateThreads()[0];</span><br><span class="line"></span><br><span class="line">  Process.setExceptionHandler(e =&gt; &#123;</span><br><span class="line">    console.log(`\n=== Handler got $&#123;e.type&#125; exception at $&#123;e.context.pc&#125;`);</span><br><span class="line"></span><br><span class="line">    if (Process.getCurrentThreadId() === thread.id &amp;&amp;</span><br><span class="line">        [&#x27;breakpoint&#x27;, &#x27;single-step&#x27;].includes(e.type)) &#123;</span><br><span class="line">      thread.unsetHardwareWatchpoint(0);</span><br><span class="line">      console.log(&#x27;\tDisabled hardware watchpoint&#x27;);</span><br><span class="line">      return true;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    console.log(&#x27;\tPassing to application&#x27;);</span><br><span class="line">    return false;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  thread.setHardwareWatchpoint(0, address, size, conditions);</span><br><span class="line"></span><br><span class="line">  console.log(&#x27;Ready&#x27;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>然后执行该函数, 结果如下</p>
+<p><img src="/images/2024_0911/img_5.png" alt="img_1.png"></p>
+<p>关注这个地址 0x7ac953dbbc<br>0x7ac953dbbc - so基址 &#x3D; 0x1ebbc</p>
+<p>ida查看地址 0x1ebbc<br><img src="/images/2024_0911/img_6.png" alt="img_1.png"></p>
+<p>yyds!!!!!</p>
+<p>最后放上完整代码</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">let matches = [];</span><br><span class="line"></span><br><span class="line">function scan(pattern) &#123;</span><br><span class="line">  const locations = new Set();</span><br><span class="line">  console.log(123)</span><br><span class="line">  console.log(Process.enumerateMallocRanges())</span><br><span class="line">  for (const r of Process.enumerateMallocRanges()) &#123;</span><br><span class="line"></span><br><span class="line">    for (const match of Memory.scanSync(r.base, r.size, pattern)) &#123;</span><br><span class="line">      locations.add(match.address.toString());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  matches = Array.from(locations).map(ptr);</span><br><span class="line">  console.log(&#x27;Found&#x27;, matches.length, &#x27;matches&#x27;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">function linux_scan(pattern) &#123;</span><br><span class="line">  const locations = new Set();</span><br><span class="line">  // console.log(123)</span><br><span class="line"></span><br><span class="line">  let target_so = null;</span><br><span class="line">  // const m = Process.enumerateModules()[0];</span><br><span class="line">  for (const process of Process.enumerateModules())&#123;</span><br><span class="line">    // console.log(&quot;process &quot;, process.name)</span><br><span class="line">    if(process.name.indexOf(&quot;libcheckout.so&quot;) != -1)&#123;</span><br><span class="line">    // if(process.name.indexOf(&quot;libmetasec_ml.so&quot;) != -1)&#123;</span><br><span class="line">      target_so = process</span><br><span class="line">      break;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  const m = target_so;</span><br><span class="line"></span><br><span class="line">  console.log(&quot;so---&gt;&quot;+m.name)</span><br><span class="line">  // console.log(hexdump(m.base));</span><br><span class="line"></span><br><span class="line">  for (const match of Memory.scanSync(m.base, m.size, pattern)) &#123;</span><br><span class="line">    locations.add(match.address.toString());</span><br><span class="line">  &#125;</span><br><span class="line">  matches = Array.from(locations).map(ptr);</span><br><span class="line">  console.log(ptr(matches - m.base))</span><br><span class="line">  // console.log(matches.)</span><br><span class="line">  // Memory.writeU32(matches[0], 100)</span><br><span class="line">  console.log(&#x27;Found&#x27;, matches.length, &#x27;matches&#x27;);</span><br><span class="line">  console.log(&quot;打印 matches&quot;)</span><br><span class="line">  for(const match of matches)&#123;</span><br><span class="line">    // console.log(&quot;match &quot;, ptr(matches - m.base))</span><br><span class="line">    console.log(&quot;match &quot;, ptr(match - m.base))</span><br><span class="line">    console.log(hexdump(ptr(match)))</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">function installWatchpoint(address, size, conditions) &#123;</span><br><span class="line">  const thread = Process.enumerateThreads()[0];</span><br><span class="line"></span><br><span class="line">  Process.setExceptionHandler(e =&gt; &#123;</span><br><span class="line">    console.log(`\n=== Handler got $&#123;e.type&#125; exception at $&#123;e.context.pc&#125;`);</span><br><span class="line"></span><br><span class="line">    if (Process.getCurrentThreadId() === thread.id &amp;&amp;</span><br><span class="line">        [&#x27;breakpoint&#x27;, &#x27;single-step&#x27;].includes(e.type)) &#123;</span><br><span class="line">      thread.unsetHardwareWatchpoint(0);</span><br><span class="line">      console.log(&#x27;\tDisabled hardware watchpoint&#x27;);</span><br><span class="line">      return true;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    console.log(&#x27;\tPassing to application&#x27;);</span><br><span class="line">    return false;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  thread.setHardwareWatchpoint(0, address, size, conditions);</span><br><span class="line"></span><br><span class="line">  console.log(&#x27;Ready&#x27;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">function reduce(val) &#123;</span><br><span class="line">  matches = matches.filter(location =&gt; location.readU32() === val);</span><br><span class="line">  console.log(&#x27;Filtered down to:&#x27;);</span><br><span class="line">  console.log(JSON.stringify(matches));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">function patternFromU32(val) &#123;</span><br><span class="line">  return new MatchPattern(ptr(val).toMatchPattern().substr(0, 11));</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>回顾一下, 学到了什么<br>1、通过frida 扫描内存中的数字&#x2F;字符串<br>2、定位存放关键数据的内存后, 对该地址下写断点， 当该地址的值发生变化后, 就知道是哪里的代码操作的了.</p>
 ]]></content>
   </entry>
   <entry>
@@ -378,6 +442,8 @@
     <content><![CDATA[<h3 id="我们自己写了一个app-现在对这个app进行trace"><a href="#我们自己写了一个app-现在对这个app进行trace" class="headerlink" title="我们自己写了一个app, 现在对这个app进行trace"></a>我们自己写了一个app, 现在对这个app进行trace</h3><p>先看看so名</p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cat /proc/$(pidof com.zj.my_md5 )/maps | grep checkout</span><br></pre></td></tr></table></figure>
 
+
+<span id="more"></span>
 <p><img src="/images/img_33.png" alt="img_1.png"></p>
 <p>这是一个 64位的so. 名为 libcheckout.so</p>
 <p>ida 打开看看目标so</p>
