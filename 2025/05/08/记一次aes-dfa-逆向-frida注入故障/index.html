@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="mgaic" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="分析 可以看到符号并没有抹除. 我们进入 AES_ECB_encrypt 看看  可以看到 sub_20B14 被调用了三次， 这显然是 轮密钥加 的操作.第一轮 与 key0 做异或第2到10轮 与 key1-9 做异或第11轮 与 key10 做异或 进入到  sub_20BAC, 看看实现  再看看  byte_16CD5  这明显是一个查表的操作, 而且 0x63, 0x7C, 0x77,">
+<meta property="og:type" content="article">
+<meta property="og:title" content="记一次aes dfa 逆向,frida 注入故障">
+<meta property="og:url" content="http://example.com/2025/05/08/%E8%AE%B0%E4%B8%80%E6%AC%A1aes-dfa-%E9%80%86%E5%90%91-frida%E6%B3%A8%E5%85%A5%E6%95%85%E9%9A%9C/index.html">
+<meta property="og:site_name" content="mgaic">
+<meta property="og:description" content="分析 可以看到符号并没有抹除. 我们进入 AES_ECB_encrypt 看看  可以看到 sub_20B14 被调用了三次， 这显然是 轮密钥加 的操作.第一轮 与 key0 做异或第2到10轮 与 key1-9 做异或第11轮 与 key10 做异或 进入到  sub_20BAC, 看看实现  再看看  byte_16CD5  这明显是一个查表的操作, 而且 0x63, 0x7C, 0x77,">
+<meta property="og:locale">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_2.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_3.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_4.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_5.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_6.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_7.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_8.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_9.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_10.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_11.png">
+<meta property="article:published_time" content="2025-05-08T03:54:40.000Z">
+<meta property="article:modified_time" content="2025-05-08T08:49:32.639Z">
+<meta property="article:author" content="chilly">
+<meta property="article:tag" content="Python, 爬虫, 逆向">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2025_0506/img_2.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://example.com/2025/05/08/记一次aes-dfa-逆向-frida注入故障/"/>
+
+
+
+
+
+  <title>记一次aes dfa 逆向,frida 注入故障 | mgaic</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">mgaic</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">爱错</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/05/08/%E8%AE%B0%E4%B8%80%E6%AC%A1aes-dfa-%E9%80%86%E5%90%91-frida%E6%B3%A8%E5%85%A5%E6%95%85%E9%9A%9C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mgaic">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">记一次aes dfa 逆向,frida 注入故障</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2025-05-08T11:54:40+08:00">
+                2025-05-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%80%86%E5%90%91/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h4 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h4><p><img src="/images/2025_0506/img_2.png" alt="img_2"></p>
+<p>可以看到符号并没有抹除.</p>
+<p>我们进入 AES_ECB_encrypt 看看</p>
+<p><img src="/images/2025_0506/img_3.png" alt="img_3"></p>
+<p>可以看到 sub_20B14 被调用了三次， 这显然是 轮密钥加 的操作.<br>第一轮 与 key0 做异或<br>第2到10轮 与 key1-9 做异或<br>第11轮 与 key10 做异或</p>
+<p>进入到  sub_20BAC, 看看实现</p>
+<p><img src="/images/2025_0506/img_4.png" alt="img_4"></p>
+<p>再看看  byte_16CD5</p>
+<p><img src="/images/2025_0506/img_5.png" alt="img_5"></p>
+<p>这明显是一个查表的操作, 而且 0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F 明显是AES 的 S盒, 专用于字节替换.</p>
+<p>再来看看 sub_20C3C 的实现. </p>
+<p><img src="/images/2025_0506/img_6.png" alt="img_6"></p>
+<p>这看起来似乎是循环左移的操作.</p>
+<p>那 sub_20D2C 大概率是 列混淆的操作了. </p>
+<p>a1 大概率是 state.</p>
+<p>我们试试在倒数第二轮修改state 的某个值.</p>
+<p><img src="/images/2025_0506/img_7.png" alt="img_7"></p>
+<p>可以看到 i&#x3D;&#x3D; 10 就退出了, 我们期望 i&#x3D;&#x3D;9 时候, 修改 state 的值.</p>
+<p>这里介绍一个ida插件, 可以生成 frida 代码 </p>
+<p><a target="_blank" rel="noopener" href="https://gist.github.com/SeeFlowerX/41b7f45913eba9d1dff6fd47c2502b13">ida 插件 gen_frida</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">function hookwbShiftRows()&#123;</span><br><span class="line">    var count = 0;</span><br><span class="line">    var base_addr = Module.findBaseAddress(&quot;libaes.so&quot;);</span><br><span class="line">    //var real_addr = base_addr.add(0x20C3C)</span><br><span class="line">    var real_addr = base_addr.add(0x20D2C)</span><br><span class="line">    Interceptor.attach(real_addr, &#123;</span><br><span class="line">        onEnter: function (args) &#123;</span><br><span class="line">            count += 1;</span><br><span class="line">            if(count%9 === 0)&#123;</span><br><span class="line">                //console.log(hexdump(args[0]))</span><br><span class="line">                args[0].add(randomNum(0,15)).writeS8(randomNum(0, 0xff));</span><br><span class="line">                //args[0].add(randomNum(0,15)).writeU8(randomNum(0, 0xff));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>函数名没来得及改, hook循环左移, 但不影响, 我们实际hook的是列混淆函数</p>
+<p>一共是九次列混淆, 最后一轮计算中并没有列混淆的操作. 所有当 i&#x3D;&#x3D;9 时, 注入一个字节. 在哪里注入? 在arg[0] + offset 的位置注入无符号字节, 0-255之间</p>
+<p>我们怎么来主动 call 呢?</p>
+<p>答曰 : 从java 层或者 native层主动call<br>我这里从native层没有找到好的时机, 因为 aes的第一个入参是 &amp;ctx, 这是个结构体. 所以我尝试从 java层多次call</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Java</span>.<span class="title function_">perform</span>(<span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// 替换为你实际的类名</span></span><br><span class="line">    <span class="keyword">var</span> <span class="title class_">TargetClass</span> = <span class="title class_">Java</span>.<span class="title function_">use</span>(<span class="string">&quot;com.example.aes.MainActivity&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 构造 byte[] 参数</span></span><br><span class="line">    <span class="keyword">function</span> <span class="title function_">stringToByteArray</span>(<span class="params">str</span>) &#123;</span><br><span class="line">        <span class="keyword">var</span> bytes = <span class="title class_">Java</span>.<span class="title function_">array</span>(<span class="string">&#x27;byte&#x27;</span>, <span class="title class_">Array</span>.<span class="title function_">from</span>(str, <span class="function"><span class="params">c</span> =&gt;</span> c.<span class="title function_">charCodeAt</span>(<span class="number">0</span>)));</span><br><span class="line">        <span class="keyword">return</span> bytes;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> data = <span class="title function_">stringToByteArray</span>(<span class="string">&quot;1111222233334444&quot;</span>);</span><br><span class="line">    <span class="keyword">var</span> key = <span class="title function_">stringToByteArray</span>(<span class="string">&quot;1234567890123456&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">var</span> i=<span class="number">0</span>;i&lt;<span class="number">100</span>;i++)&#123;</span><br><span class="line">        <span class="keyword">var</span> result = <span class="title class_">TargetClass</span>.<span class="title function_">openssl_encrypt</span>(data, key);</span><br><span class="line">        <span class="comment">// console.log(&quot;Encrypted result: &quot; + result);</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(result);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+
+<p>下面给出完整的 dfa 注入错误的代码</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">hexToBytes</span>(<span class="params">hex</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">var</span> bytes = [], c = <span class="number">0</span>; c &lt; hex.<span class="property">length</span>; c += <span class="number">2</span>)</span><br><span class="line">        bytes.<span class="title function_">push</span>(<span class="built_in">parseInt</span>(hex.<span class="title function_">substr</span>(c, <span class="number">2</span>), <span class="number">16</span>));</span><br><span class="line">    <span class="keyword">return</span> bytes;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">randomNum</span>(<span class="params">minNum,maxNum</span>)&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">arguments</span>.<span class="property">length</span> === <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">parseInt</span>(<span class="title class_">Math</span>.<span class="title function_">random</span>() * minNum + <span class="number">1</span>, <span class="number">10</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable language_">arguments</span>.<span class="property">length</span> === <span class="number">2</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">parseInt</span>(<span class="title class_">Math</span>.<span class="title function_">random</span>() * (maxNum - minNum + <span class="number">1</span>) + minNum, <span class="number">10</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">hookwbShiftRows</span>(<span class="params"></span>)&#123;</span><br><span class="line">    <span class="keyword">var</span> count = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">var</span> base_addr = <span class="title class_">Module</span>.<span class="title function_">findBaseAddress</span>(<span class="string">&quot;libaes.so&quot;</span>);</span><br><span class="line">    <span class="comment">//var real_addr = base_addr.add(0x20C3C)</span></span><br><span class="line">    <span class="keyword">var</span> real_addr = base_addr.<span class="title function_">add</span>(<span class="number">0x20D2C</span>)</span><br><span class="line">    <span class="title class_">Interceptor</span>.<span class="title function_">attach</span>(real_addr, &#123;</span><br><span class="line">        <span class="attr">onEnter</span>: <span class="keyword">function</span> (<span class="params">args</span>) &#123;</span><br><span class="line">            count += <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">if</span>(count%<span class="number">9</span> === <span class="number">0</span>)&#123;</span><br><span class="line">                <span class="comment">//console.log(hexdump(args[0]))</span></span><br><span class="line">                args[<span class="number">0</span>].<span class="title function_">add</span>(<span class="title function_">randomNum</span>(<span class="number">0</span>,<span class="number">15</span>)).<span class="title function_">writeS8</span>(<span class="title function_">randomNum</span>(<span class="number">0</span>, <span class="number">0xff</span>));</span><br><span class="line">                <span class="comment">//args[0].add(randomNum(0,15)).writeU8(randomNum(0, 0xff));</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">hook_0x491A0</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> base_addr = <span class="title class_">Module</span>.<span class="title function_">findBaseAddress</span>(<span class="string">&quot;libaes.so&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="title class_">Interceptor</span>.<span class="title function_">attach</span>(base_addr.<span class="title function_">add</span>(<span class="number">0x20964</span>), &#123;</span><br><span class="line">        <span class="title function_">onEnter</span>(<span class="params">args</span>) &#123;</span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`call 0x491A0 arg0:<span class="subst">$&#123;args[<span class="number">0</span>]&#125;</span> arg1:<span class="subst">$&#123;args[<span class="number">1</span>]&#125;</span>`</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">bufferToHex</span> (<span class="params">buffer</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> [...<span class="keyword">new</span> <span class="title class_">Uint8Array</span> (buffer)]</span><br><span class="line">        .<span class="property">map</span> (<span class="function"><span class="params">b</span> =&gt;</span> b.<span class="property">toString</span> (<span class="number">16</span>).<span class="property">padStart</span> (<span class="number">2</span>, <span class="string">&quot;0&quot;</span>))</span><br><span class="line">        .<span class="property">join</span> (<span class="string">&quot;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">dfa</span>(<span class="params"></span>)&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="title function_">hookwbShiftRows</span>();</span><br><span class="line">    <span class="title class_">Java</span>.<span class="title function_">perform</span>(<span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">        <span class="comment">// 替换为你实际的类名</span></span><br><span class="line">        <span class="keyword">var</span> <span class="title class_">TargetClass</span> = <span class="title class_">Java</span>.<span class="title function_">use</span>(<span class="string">&quot;com.example.aes.MainActivity&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 构造 byte[] 参数</span></span><br><span class="line">        <span class="keyword">function</span> <span class="title function_">stringToByteArray</span>(<span class="params">str</span>) &#123;</span><br><span class="line">            <span class="keyword">var</span> bytes = <span class="title class_">Java</span>.<span class="title function_">array</span>(<span class="string">&#x27;byte&#x27;</span>, <span class="title class_">Array</span>.<span class="title function_">from</span>(str, <span class="function"><span class="params">c</span> =&gt;</span> c.<span class="title function_">charCodeAt</span>(<span class="number">0</span>)));</span><br><span class="line">            <span class="keyword">return</span> bytes;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">var</span> data = <span class="title function_">stringToByteArray</span>(<span class="string">&quot;1111222233334444&quot;</span>);</span><br><span class="line">        <span class="keyword">var</span> key = <span class="title function_">stringToByteArray</span>(<span class="string">&quot;1234567890123456&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">var</span> i=<span class="number">0</span>;i&lt;<span class="number">100</span>;i++)&#123;</span><br><span class="line">            <span class="keyword">var</span> result = <span class="title class_">TargetClass</span>.<span class="title function_">openssl_encrypt</span>(data, key);</span><br><span class="line">            <span class="comment">// console.log(&quot;Encrypted result: &quot; + result);</span></span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">log</span>(result);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>然后执行 frida 注入 </p>
+<p><img src="/images/2025_0506/img_8.png" alt="img_8"></p>
+<p>将结果复制到文件 aes_dfa_result.txt 中, 第一行添加正确的加密的结果.</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> phoenixAES</span><br><span class="line"></span><br><span class="line"># phoenixAES.<span class="title function_">crack_file</span>(<span class="string">&#x27;aes_128_dfa.txt&#x27;</span>, [], <span class="title class_">True</span>, <span class="title class_">False</span>, <span class="number">3</span>)  # crack_file的第三个参数传入<span class="title class_">False</span>，代表这是一个解密过程</span><br><span class="line">phoenixAES.<span class="title function_">crack_file</span>(<span class="string">&#x27;aes_dfa_result.txt&#x27;</span>, [], <span class="title class_">True</span>, <span class="title class_">False</span>, <span class="number">3</span>)  # crack_file的第三个参数传入<span class="title class_">False</span>，代表这是一个解密过程</span><br></pre></td></tr></table></figure>
+
+<p>跑一下 看看结果</p>
+<p><img src="/images/2025_0506/img_9.png" alt="img_9"></p>
+<p>可以看到 最后一轮也就是第11轮的密钥已经出来了, 197DD69D902A88D60447D21405FC374C</p>
+<p>已知AES ECB 的某一轮密钥, 可以推导出其他任意一轮密钥,(共11轮密钥), 包括初始密钥， 也可以推导出.</p>
+<p>我们使用 Stark 工具来推导出任意一轮密钥</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">git <span class="built_in">clone</span> https://github.com/SideChannelMarvels/Stark.git</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">make -j8</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">从0开始计数. 10代表第11轮</span></span><br><span class="line">./aes_keyschedule 197DD69D902A88D60447D21405FC374C 10</span><br></pre></td></tr></table></figure>
+
+<p>看看结果</p>
+<p><img src="/images/2025_0506/img_10.png" alt="img_10"></p>
+<p>cyberchef 看看 </p>
+<p><img src="/images/2025_0506/img_11.png" alt="img_11"></p>
+<p>可以看到 AES ECB 的密钥已经出来了. 算法并没有魔改</p>
+<p>而且这个样本使用的就是标准的 tiny-AES-c 的算法<br>感兴趣可以自己研究研究</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/kokke/tiny-AES-c.git</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="案例"><a href="#案例" class="headerlink" title="案例"></a>案例</h4><p><a href="/downloads/aes.apk">点我下载 案例.apk </a></p>
+<h4 id="源码下载"><a href="#源码下载" class="headerlink" title="源码下载"></a>源码下载</h4><p><a href="/downloads/aes.zip">点我下载 apk源码 </a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2025/05/06/%E8%81%8A%E8%81%8Afrida-%E6%A3%80%E6%B5%8B/" rel="next" title="聊聊frida 检测">
+                <i class="fa fa-chevron-left"></i> 聊聊frida 检测
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2025/05/08/%E8%AE%B0%E4%B8%80%E6%AC%A1aes-dfa-%E9%80%86%E5%90%91-unidbg-%E6%B3%A8%E5%85%A5%E6%95%85%E9%9A%9C/" rel="prev" title="记一次aes dfa 逆向, unidbg 注入故障">
+                记一次aes dfa 逆向, unidbg 注入故障 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">18</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E6%9E%90"><span class="nav-number">1.</span> <span class="nav-text">分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A1%88%E4%BE%8B"><span class="nav-number">2.</span> <span class="nav-text">案例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E4%B8%8B%E8%BD%BD"><span class="nav-number">3.</span> <span class="nav-text">源码下载</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chilly</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

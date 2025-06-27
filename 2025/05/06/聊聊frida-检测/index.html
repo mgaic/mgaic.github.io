@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="mgaic" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="常见检测点检测 gmain 和 gum-js-loopfrida 在注入时, 会在目标进程下创建两个新线程，名为 gmain 和 gum-js-loop.通过检测线程名，可以判断当前进程是否被frida注入. 具体实现方法 可以通过判断 &#x2F;proc&#x2F;self&#x2F;task&#x2F;tid&#x2F;status 文件, status文件的第一行是线程名.遍历所有的线程名">
+<meta property="og:type" content="article">
+<meta property="og:title" content="聊聊frida 检测">
+<meta property="og:url" content="http://example.com/2025/05/06/%E8%81%8A%E8%81%8Afrida-%E6%A3%80%E6%B5%8B/index.html">
+<meta property="og:site_name" content="mgaic">
+<meta property="og:description" content="常见检测点检测 gmain 和 gum-js-loopfrida 在注入时, 会在目标进程下创建两个新线程，名为 gmain 和 gum-js-loop.通过检测线程名，可以判断当前进程是否被frida注入. 具体实现方法 可以通过判断 &#x2F;proc&#x2F;self&#x2F;task&#x2F;tid&#x2F;status 文件, status文件的第一行是线程名.遍历所有的线程名">
+<meta property="og:locale">
+<meta property="og:image" content="http://example.com/images/2025_0506/img.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_1.png">
+<meta property="article:published_time" content="2025-05-06T05:52:11.000Z">
+<meta property="article:modified_time" content="2025-05-06T08:25:09.032Z">
+<meta property="article:author" content="chilly">
+<meta property="article:tag" content="Python, 爬虫, 逆向">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2025_0506/img.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://example.com/2025/05/06/聊聊frida-检测/"/>
+
+
+
+
+
+  <title>聊聊frida 检测 | mgaic</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">mgaic</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">爱错</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/05/06/%E8%81%8A%E8%81%8Afrida-%E6%A3%80%E6%B5%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mgaic">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">聊聊frida 检测</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2025-05-06T13:52:11+08:00">
+                2025-05-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%80%86%E5%90%91/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h4 id="常见检测点"><a href="#常见检测点" class="headerlink" title="常见检测点"></a>常见检测点</h4><h6 id="检测-gmain-和-gum-js-loop"><a href="#检测-gmain-和-gum-js-loop" class="headerlink" title="检测 gmain 和 gum-js-loop"></a>检测 gmain 和 gum-js-loop</h6><p>frida 在注入时, 会在目标进程下创建两个新线程，名为 gmain 和 gum-js-loop.<br>通过检测线程名，可以判断当前进程是否被frida注入. 具体实现方法 可以通过判断 &#x2F;proc&#x2F;self&#x2F;task&#x2F;tid&#x2F;status 文件, status文件的第一行是线程名.<br>遍历所有的线程名， 如果发现 gmain 和 gum-js-loop， 则可认定该进程被注入.<br>下面给出检测代码</p>
+<h6 id="检测-gmain-和-gum-js-loop-1"><a href="#检测-gmain-和-gum-js-loop-1" class="headerlink" title="检测 gmain 和 gum-js-loop"></a>检测 gmain 和 gum-js-loop</h6><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">static const char *APPNAME = &quot;DetectFrida&quot;;</span><br><span class="line">static const char *FRIDA_THREAD_GUM_JS_LOOP = &quot;gum-js-loop&quot;;</span><br><span class="line">static const char *FRIDA_THREAD_GMAIN = &quot;gmain&quot;;</span><br><span class="line">static const char *FRIDA_NAMEDPIPE_LINJECTOR = &quot;linjector&quot;;</span><br><span class="line">static const char *PROC_MAPS = &quot;/proc/self/maps&quot;;</span><br><span class="line">static const char *PROC_STATUS = &quot;/proc/self/task/%s/status&quot;;</span><br><span class="line">static const char *PROC_FD = &quot;/proc/self/fd&quot;;</span><br><span class="line">static const char *PROC_TASK = &quot;/proc/self/task&quot;;</span><br><span class="line"></span><br><span class="line">__attribute__((always_inline))</span><br><span class="line">static inline void detect_frida_threads() &#123;</span><br><span class="line"></span><br><span class="line">    DIR *dir = opendir(PROC_TASK);</span><br><span class="line"></span><br><span class="line">    if (dir != NULL) &#123;</span><br><span class="line">        struct dirent *entry = NULL;</span><br><span class="line">        while ((entry = readdir(dir)) != NULL) &#123;</span><br><span class="line">            char filePath[MAX_LENGTH] = &quot;&quot;;</span><br><span class="line"></span><br><span class="line">            if (0 == my_strcmp(entry-&gt;d_name, &quot;.&quot;) || 0 == my_strcmp(entry-&gt;d_name, &quot;..&quot;)) &#123;</span><br><span class="line">                continue;</span><br><span class="line">            &#125;</span><br><span class="line">            snprintf(filePath, sizeof(filePath), PROC_STATUS, entry-&gt;d_name);</span><br><span class="line"></span><br><span class="line">            int fd = my_openat(AT_FDCWD, filePath, O_RDONLY | O_CLOEXEC, 0);</span><br><span class="line">            if (fd != 0) &#123;</span><br><span class="line">                char buf[MAX_LENGTH] = &quot;&quot;;</span><br><span class="line">                read_one_line(fd, buf, MAX_LENGTH);</span><br><span class="line">                if (my_strstr(buf, FRIDA_THREAD_GUM_JS_LOOP) ||</span><br><span class="line">                    my_strstr(buf, FRIDA_THREAD_GMAIN)) &#123;</span><br><span class="line">                    //Kill the thread. This freezes the app. Check if it is an anticpated behaviour</span><br><span class="line">                    //int tid = my_atoi(entry-&gt;d_name);</span><br><span class="line">                    //int ret = my_tgkill(getpid(), tid, SIGSTOP);</span><br><span class="line">                    __android_log_print(ANDROID_LOG_WARN, APPNAME,</span><br><span class="line">                                        &quot;Frida specific thread found. Act now!!!&quot;);</span><br><span class="line">                &#125;</span><br><span class="line">                my_close(fd);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        closedir(dir);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>检测 frida 特征命名管道  “linjector”</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">static const char *APPNAME = &quot;DetectFrida&quot;;</span><br><span class="line">static const char *FRIDA_THREAD_GUM_JS_LOOP = &quot;gum-js-loop&quot;;</span><br><span class="line">static const char *FRIDA_THREAD_GMAIN = &quot;gmain&quot;;</span><br><span class="line">static const char *FRIDA_NAMEDPIPE_LINJECTOR = &quot;linjector&quot;;</span><br><span class="line">static const char *PROC_MAPS = &quot;/proc/self/maps&quot;;</span><br><span class="line">static const char *PROC_STATUS = &quot;/proc/self/task/%s/status&quot;;</span><br><span class="line">static const char *PROC_FD = &quot;/proc/self/fd&quot;;</span><br><span class="line">static const char *PROC_TASK = &quot;/proc/self/task&quot;;</span><br><span class="line"></span><br><span class="line">__attribute__((always_inline))</span><br><span class="line">static inline void detect_frida_namedpipe() &#123;</span><br><span class="line"></span><br><span class="line">    DIR *dir = opendir(PROC_FD);</span><br><span class="line">    if (dir != NULL) &#123;</span><br><span class="line">        struct dirent *entry = NULL;</span><br><span class="line">        while ((entry = readdir(dir)) != NULL) &#123;</span><br><span class="line">            struct stat filestat;</span><br><span class="line">            char buf[MAX_LENGTH] = &quot;&quot;;</span><br><span class="line">            char filePath[MAX_LENGTH] = &quot;&quot;;</span><br><span class="line">            snprintf(filePath, sizeof(filePath), &quot;/proc/self/fd/%s&quot;, entry-&gt;d_name);</span><br><span class="line"></span><br><span class="line">            lstat(filePath, &amp;filestat);</span><br><span class="line"></span><br><span class="line">            if ((filestat.st_mode &amp; S_IFMT) == S_IFLNK) &#123;</span><br><span class="line">                //TODO: Another way is to check if filepath belongs to a path not related to system or the app</span><br><span class="line">                my_readlinkat(AT_FDCWD, filePath, buf, MAX_LENGTH);</span><br><span class="line">                if (NULL != my_strstr(buf, FRIDA_NAMEDPIPE_LINJECTOR)) &#123;</span><br><span class="line">                    __android_log_print(ANDROID_LOG_WARN, APPNAME,</span><br><span class="line">                                        &quot;Frida specific named pipe found. Act now!!!&quot;);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    closedir(dir);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对比内存中的可执行段（.text 段等）与磁盘上的 ELF 文件内容，识别是否被 Frida 等工具篡改注入</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br></pre></td><td class="code"><pre><span class="line">//Structure to hold the details of executable section of library</span><br><span class="line">typedef struct stExecSection &#123;</span><br><span class="line">    int execSectionCount;</span><br><span class="line">    unsigned long offset[2];</span><br><span class="line">    unsigned long memsize[2];</span><br><span class="line">    unsigned long checksum[2];</span><br><span class="line">    unsigned long startAddrinMem;</span><br><span class="line">&#125; execSection;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">define NUM_LIBS 2</span></span><br><span class="line"></span><br><span class="line">//Include more libs as per your need, but beware of the performance bottleneck especially</span><br><span class="line">//when the size of the libraries are &gt; few MBs</span><br><span class="line">static const char *libstocheck[NUM_LIBS] = &#123;&quot;libnative-lib.so&quot;, LIBC&#125;;</span><br><span class="line">static execSection *elfSectionArr[NUM_LIBS] = &#123;NULL&#125;;</span><br><span class="line"></span><br><span class="line">__attribute__((always_inline))</span><br><span class="line">static inline bool</span><br><span class="line">scan_executable_segments(char *map, execSection *pElfSectArr, const char *libraryName) &#123;</span><br><span class="line">    unsigned long start, end;</span><br><span class="line">    char buf[MAX_LINE] = &quot;&quot;;</span><br><span class="line">    char path[MAX_LENGTH] = &quot;&quot;;</span><br><span class="line">    char tmp[100] = &quot;&quot;;</span><br><span class="line"></span><br><span class="line">    sscanf(map, &quot;%lx-%lx %s %s %s %s %s&quot;, &amp;start, &amp;end, buf, tmp, tmp, tmp, path);</span><br><span class="line">    //__android_log_print(ANDROID_LOG_VERBOSE, APPNAME, &quot;Map [%s]&quot;, map);</span><br><span class="line"></span><br><span class="line">    if (buf[2] == &#x27;x&#x27;) &#123;</span><br><span class="line">        if (buf[0] == &#x27;r&#x27;) &#123;</span><br><span class="line">            uint8_t *buffer = NULL;</span><br><span class="line"></span><br><span class="line">            buffer = (uint8_t *) start;</span><br><span class="line">            for (int i = 0; i &lt; pElfSectArr-&gt;execSectionCount; i++) &#123;</span><br><span class="line">                if (start + pElfSectArr-&gt;offset[i] + pElfSectArr-&gt;memsize[i] &gt; end) &#123;</span><br><span class="line">                    if (pElfSectArr-&gt;startAddrinMem != 0) &#123;</span><br><span class="line">                        buffer = (uint8_t *) pElfSectArr-&gt;startAddrinMem;</span><br><span class="line">                        pElfSectArr-&gt;startAddrinMem = 0;</span><br><span class="line">                        break;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            for (int i = 0; i &lt; pElfSectArr-&gt;execSectionCount; i++) &#123;</span><br><span class="line">                unsigned long output = checksum(buffer + pElfSectArr-&gt;offset[i],</span><br><span class="line">                                                pElfSectArr-&gt;memsize[i]);</span><br><span class="line">//                __android_log_print(ANDROID_LOG_VERBOSE, APPNAME, &quot;Checksum:[%ld][%ld]&quot;, output,</span><br><span class="line">//                                    pElfSectArr-&gt;checksum[i]);</span><br><span class="line"></span><br><span class="line">                if (output != pElfSectArr-&gt;checksum[i]) &#123;</span><br><span class="line">                    __android_log_print(ANDROID_LOG_VERBOSE, APPNAME,</span><br><span class="line">                                        &quot;Executable Section Manipulated, &quot;</span><br><span class="line">                                        &quot;maybe due to Frida or other hooking framework.&quot;</span><br><span class="line">                                        &quot;Act Now!!!&quot;);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125; else &#123;</span><br><span class="line"></span><br><span class="line">            char ch[10] = &quot;&quot;, ch1[10] = &quot;&quot;;</span><br><span class="line">            __system_property_get(&quot;ro.build.version.release&quot;, ch);</span><br><span class="line">            __system_property_get(&quot;ro.system.build.version.release&quot;, ch1);</span><br><span class="line">            int version = my_atoi(ch);</span><br><span class="line">            int version1 = my_atoi(ch1);</span><br><span class="line">            if (version &lt; 10 || version1 &lt; 10) &#123;</span><br><span class="line">                __android_log_print(ANDROID_LOG_VERBOSE, APPNAME, &quot;Suspicious to get XOM in &quot;</span><br><span class="line">                                                                  &quot;version &lt; Android10&quot;);</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                if (0 == my_strncmp(libraryName, LIBC, my_strlen(LIBC))) &#123;</span><br><span class="line">                    //If it is not readable, then most likely it is not manipulated by Frida</span><br><span class="line">                    __android_log_print(ANDROID_LOG_VERBOSE, APPNAME, &quot;LIBC Executable Section&quot;</span><br><span class="line">                                                                      &quot; not readable! &quot;);</span><br><span class="line"></span><br><span class="line">                &#125; else &#123;</span><br><span class="line">                    __android_log_print(ANDROID_LOG_VERBOSE, APPNAME, &quot;Suspicious to get XOM &quot;</span><br><span class="line">                                                                      &quot;for non-system library on &quot;</span><br><span class="line">                                                                      &quot;Android 10 and above&quot;);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return true;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        if (buf[0] == &#x27;r&#x27;) &#123;</span><br><span class="line">            pElfSectArr-&gt;startAddrinMem = start;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return false;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">__attribute__((always_inline))</span><br><span class="line">static inline void detect_frida_memdiskcompare() &#123;</span><br><span class="line">    int fd = 0;</span><br><span class="line">    char map[MAX_LINE];</span><br><span class="line"></span><br><span class="line">    if ((fd = my_openat(AT_FDCWD, PROC_MAPS, O_RDONLY | O_CLOEXEC, 0)) != 0) &#123;</span><br><span class="line"></span><br><span class="line">        while ((read_one_line(fd, map, MAX_LINE)) &gt; 0) &#123;</span><br><span class="line">            for (int i = 0; i &lt; NUM_LIBS; i++) &#123;</span><br><span class="line">                if (my_strstr(map, libstocheck[i]) != NULL) &#123;</span><br><span class="line">                    if (true == scan_executable_segments(map, elfSectionArr[i], libstocheck[i])) &#123;</span><br><span class="line">                        break;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        __android_log_print(ANDROID_LOG_WARN, APPNAME,</span><br><span class="line">                            &quot;Error opening /proc/self/maps. That&#x27;s usually a bad sign.&quot;);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    my_close(fd);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="来看看一些绕过-frida检测的项目-strong-frida"><a href="#来看看一些绕过-frida检测的项目-strong-frida" class="headerlink" title="来看看一些绕过 frida检测的项目 strong-frida"></a>来看看一些绕过 frida检测的项目 strong-frida</h4><p><img src="/images/2025_0506/img.png" alt="strong-frida"></p>
+<p>这里只patch 了针对 gmain 和 loop-js 还有命名管道的检测.</p>
+<p>这里放一个 frida check 的apk, 可自行验证</p>
+<p><img src="/images/2025_0506/img_1.png" alt="strong-frida"></p>
+<p><a href="/downloads/Frida_check.apk">点我下载 Frida_check.apk </a></p>
+<h4 id="这里延申一种定位加密位置的办法-很好用"><a href="#这里延申一种定位加密位置的办法-很好用" class="headerlink" title="这里延申一种定位加密位置的办法, 很好用"></a>这里延申一种定位加密位置的办法, 很好用</h4><p>试试看 hook StringBuilder StringBuffer 的 toString , 然后打印调用堆栈.</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Java</span>.<span class="title function_">perform</span>(<span class="keyword">function</span> <span class="title function_">x</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">//定位StringBuilder,StringBuffer类</span></span><br><span class="line">    <span class="keyword">const</span> stringbuilder = <span class="title class_">Java</span>.<span class="title function_">use</span>(<span class="string">&quot;java.lang.StringBuilder&quot;</span>);</span><br><span class="line">    <span class="keyword">const</span> stringbuffer = <span class="title class_">Java</span>.<span class="title function_">use</span>(<span class="string">&quot;java.lang.StringBuffer&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//定位方法</span></span><br><span class="line">    <span class="keyword">const</span> toString = <span class="string">&quot;toString&quot;</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用log类和Exception类产生堆栈</span></span><br><span class="line">    <span class="keyword">var</span> jAndroidLog = <span class="title class_">Java</span>.<span class="title function_">use</span>(<span class="string">&quot;android.util.Log&quot;</span>);</span><br><span class="line">    <span class="keyword">var</span> jException = <span class="title class_">Java</span>.<span class="title function_">use</span>(<span class="string">&quot;java.lang.Exception&quot;</span>);</span><br><span class="line"></span><br><span class="line">    stringbuilder[toString].<span class="property">implementation</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">        <span class="comment">//执行原逻辑</span></span><br><span class="line">        <span class="keyword">const</span> result = <span class="variable language_">this</span>[toString]();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (result.<span class="title function_">indexOf</span>(<span class="string">&quot;aaaaa&quot;</span>) != -<span class="number">1</span>) &#123;</span><br><span class="line">            <span class="comment">// 打印返回的字符串内容</span></span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">log</span>(result);</span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">log</span>(jAndroidLog.<span class="title function_">getStackTraceString</span>(jException.$new()));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    stringbuffer[toString].<span class="property">implementation</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">        <span class="comment">//执行原逻辑</span></span><br><span class="line">        <span class="keyword">const</span> result = <span class="variable language_">this</span>[toString]();</span><br><span class="line">        <span class="keyword">if</span> (result.<span class="title function_">indexOf</span>(<span class="string">&quot;aaaaa&quot;</span>) != -<span class="number">1</span>) &#123;</span><br><span class="line">            <span class="comment">// 打印返回的字符串内容</span></span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">log</span>(result);</span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">log</span>(jAndroidLog.<span class="title function_">getStackTraceString</span>(jException.$new()));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="样例分析"><a href="#样例分析" class="headerlink" title="样例分析"></a>样例分析</h4><p>如果一个样本存在 anti-frida, 要怎么定位关键监测点呢<br>先试试看 hook 库的加载函数(在 Android 较低版本比如 6.0 上是dlopen，较高版本上是android_dlopen_ext)</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> android_dlopen_ext = <span class="title class_">Module</span>.<span class="title function_">findExportByName</span>(<span class="literal">null</span>, <span class="string">&quot;android_dlopen_ext&quot;</span>);</span><br><span class="line"><span class="keyword">if</span>(android_dlopen_ext != <span class="literal">null</span>)&#123;</span><br><span class="line">    <span class="title class_">Interceptor</span>.<span class="title function_">attach</span>(android_dlopen_ext,&#123;</span><br><span class="line">        <span class="attr">onEnter</span>: <span class="keyword">function</span>(<span class="params">args</span>)&#123;</span><br><span class="line">            <span class="keyword">var</span> soName = args[<span class="number">0</span>].<span class="title function_">readCString</span>();</span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">log</span>(soName);</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">onLeave</span>: <span class="keyword">function</span>(<span class="params">retval</span>)&#123;</span><br><span class="line">            <span class="title class_">Thread</span>.<span class="title function_">sleep</span>(<span class="number">5</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>每次加载完一个so文件后, 就休眠一段时间, 如果程序退出了， 那么凶手可能就是最后一个加载的so文件.</p>
+<p>针对  libmsaoaidsec.so 的分析， 可以看看之前发过的文章, 使用 stackplz 分析 libmsaoaidsec.so， 很方便.</p>
+<p>其实也可以简单绕过</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">hookDlopen</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> p_android_dlopen_ext = <span class="title class_">Module</span>.<span class="title function_">findExportByName</span>(<span class="literal">null</span>, <span class="string">&quot;android_dlopen_ext&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (p_android_dlopen_ext != <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="comment">// void* android_dlopen_ext(const char* filename, int flags, const android_dlextinfo* extinfo)</span></span><br><span class="line">        <span class="keyword">var</span> android_dlopen_ext = <span class="keyword">new</span> <span class="title class_">NativeFunction</span>(p_android_dlopen_ext, <span class="string">&quot;pointer&quot;</span>, [<span class="string">&quot;pointer&quot;</span>, <span class="string">&quot;int&quot;</span>, <span class="string">&quot;pointer&quot;</span>]);</span><br><span class="line"></span><br><span class="line">        <span class="title class_">Interceptor</span>.<span class="title function_">replace</span>(p_android_dlopen_ext, <span class="keyword">new</span> <span class="title class_">NativeCallback</span>(<span class="keyword">function</span> (<span class="params">filename, flag, extinfo</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (filename.<span class="title function_">readCString</span>().<span class="title function_">indexOf</span>(<span class="string">&quot;libmsaoaidsec.so&quot;</span>) != -<span class="number">1</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="title function_">ptr</span>(-<span class="number">1</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="title function_">android_dlopen_ext</span>(filename, flag, extinfo);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;, <span class="string">&quot;pointer&quot;</span>, [<span class="string">&quot;pointer&quot;</span>, <span class="string">&quot;int&quot;</span>, <span class="string">&quot;pointer&quot;</span>]));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">hookDlopen</span>();</span><br></pre></td></tr></table></figure>
+
+<p>或者 明明要加载 libmsaoaidsec.so，让程序再加载一个空 或者加载一个已经加载过的so文件.</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">hook_dlopen</span>(<span class="params">soName = <span class="string">&#x27;&#x27;</span></span>) &#123;</span><br><span class="line">    <span class="title class_">Interceptor</span>.<span class="title function_">attach</span>(<span class="title class_">Module</span>.<span class="title function_">findExportByName</span>(<span class="literal">null</span>, <span class="string">&quot;android_dlopen_ext&quot;</span>), &#123;</span><br><span class="line">        <span class="attr">onEnter</span>: <span class="keyword">function</span> (<span class="params">args</span>) &#123;</span><br><span class="line">            <span class="keyword">var</span> pathptr = args[<span class="number">0</span>];</span><br><span class="line">            <span class="keyword">if</span> (pathptr !== <span class="literal">undefined</span> &amp;&amp; pathptr != <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="keyword">var</span> path = <span class="title function_">ptr</span>(pathptr).<span class="title function_">readCString</span>();</span><br><span class="line">                <span class="keyword">if</span>(path.<span class="title function_">indexOf</span>(<span class="string">&#x27;libmsaoaidsec.so&#x27;</span>) &gt;= <span class="number">0</span>)&#123;</span><br><span class="line">                    <span class="title function_">ptr</span>(pathptr).<span class="title function_">writeUtf8String</span>(<span class="string">&quot;&quot;</span>);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;path: &#x27;</span>,path)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">hook_dlopen</span>()</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2025/05/06/2025-%E4%BA%94%E4%B8%80%E5%81%87%E6%9C%9F%E8%AE%B0%E5%BD%95/" rel="next" title="2025 五一假期记录">
+                <i class="fa fa-chevron-left"></i> 2025 五一假期记录
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2025/05/08/%E8%AE%B0%E4%B8%80%E6%AC%A1aes-dfa-%E9%80%86%E5%90%91-frida%E6%B3%A8%E5%85%A5%E6%95%85%E9%9A%9C/" rel="prev" title="记一次aes dfa 逆向,frida 注入故障">
+                记一次aes dfa 逆向,frida 注入故障 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">18</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E6%A3%80%E6%B5%8B%E7%82%B9"><span class="nav-number">1.</span> <span class="nav-text">常见检测点</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%A3%80%E6%B5%8B-gmain-%E5%92%8C-gum-js-loop"><span class="nav-number">1.0.1.</span> <span class="nav-text">检测 gmain 和 gum-js-loop</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%A3%80%E6%B5%8B-gmain-%E5%92%8C-gum-js-loop-1"><span class="nav-number">1.0.2.</span> <span class="nav-text">检测 gmain 和 gum-js-loop</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9D%A5%E7%9C%8B%E7%9C%8B%E4%B8%80%E4%BA%9B%E7%BB%95%E8%BF%87-frida%E6%A3%80%E6%B5%8B%E7%9A%84%E9%A1%B9%E7%9B%AE-strong-frida"><span class="nav-number">2.</span> <span class="nav-text">来看看一些绕过 frida检测的项目 strong-frida</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%99%E9%87%8C%E5%BB%B6%E7%94%B3%E4%B8%80%E7%A7%8D%E5%AE%9A%E4%BD%8D%E5%8A%A0%E5%AF%86%E4%BD%8D%E7%BD%AE%E7%9A%84%E5%8A%9E%E6%B3%95-%E5%BE%88%E5%A5%BD%E7%94%A8"><span class="nav-number">3.</span> <span class="nav-text">这里延申一种定位加密位置的办法, 很好用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A0%B7%E4%BE%8B%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">样例分析</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chilly</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

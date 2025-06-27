@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="mgaic" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="接着上篇, 上篇使用的是 frida 注入故障, 我们这篇使用 unidbg 来注入故障先补环境, 给出完整代码, 很简单 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737">
+<meta property="og:type" content="article">
+<meta property="og:title" content="记一次aes dfa 逆向, unidbg 注入故障">
+<meta property="og:url" content="http://example.com/2025/05/08/%E8%AE%B0%E4%B8%80%E6%AC%A1aes-dfa-%E9%80%86%E5%90%91-unidbg-%E6%B3%A8%E5%85%A5%E6%95%85%E9%9A%9C/index.html">
+<meta property="og:site_name" content="mgaic">
+<meta property="og:description" content="接着上篇, 上篇使用的是 frida 注入故障, 我们这篇使用 unidbg 来注入故障先补环境, 给出完整代码, 很简单 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737">
+<meta property="og:locale">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_12.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_13.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_14.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_15.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_16.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_17.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_18.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_19.png">
+<meta property="og:image" content="http://example.com/images/2025_0506/img_20.png">
+<meta property="article:published_time" content="2025-05-08T09:21:05.000Z">
+<meta property="article:modified_time" content="2025-05-08T10:27:14.331Z">
+<meta property="article:author" content="chilly">
+<meta property="article:tag" content="Python, 爬虫, 逆向">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2025_0506/img_12.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://example.com/2025/05/08/记一次aes-dfa-逆向-unidbg-注入故障/"/>
+
+
+
+
+
+  <title>记一次aes dfa 逆向, unidbg 注入故障 | mgaic</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">mgaic</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">爱错</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/05/08/%E8%AE%B0%E4%B8%80%E6%AC%A1aes-dfa-%E9%80%86%E5%90%91-unidbg-%E6%B3%A8%E5%85%A5%E6%95%85%E9%9A%9C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mgaic">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">记一次aes dfa 逆向, unidbg 注入故障</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2025-05-08T17:21:05+08:00">
+                2025-05-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%80%86%E5%90%91/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h4 id="接着上篇-上篇使用的是-frida-注入故障-我们这篇使用-unidbg-来注入故障"><a href="#接着上篇-上篇使用的是-frida-注入故障-我们这篇使用-unidbg-来注入故障" class="headerlink" title="接着上篇, 上篇使用的是 frida 注入故障, 我们这篇使用 unidbg 来注入故障"></a>接着上篇, 上篇使用的是 frida 注入故障, 我们这篇使用 unidbg 来注入故障</h4><p>先补环境, 给出完整代码, 很简单</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br></pre></td><td class="code"><pre><span class="line">package com.aes;</span><br><span class="line"></span><br><span class="line">import com.github.unidbg.AndroidEmulator;</span><br><span class="line">import com.github.unidbg.Emulator;</span><br><span class="line">import com.github.unidbg.Module;</span><br><span class="line">import com.github.unidbg.file.FileResult;</span><br><span class="line">import com.github.unidbg.file.IOResolver;</span><br><span class="line">import com.github.unidbg.linux.android.AndroidEmulatorBuilder;</span><br><span class="line">import com.github.unidbg.linux.android.AndroidResolver;</span><br><span class="line">import com.github.unidbg.linux.android.dvm.*;</span><br><span class="line">import com.github.unidbg.linux.android.dvm.api.SystemService;</span><br><span class="line">import com.github.unidbg.linux.android.dvm.array.ByteArray;</span><br><span class="line">import com.github.unidbg.linux.android.dvm.jni.ProxyDvmObject;</span><br><span class="line">import com.github.unidbg.memory.Memory;</span><br><span class="line">import com.github.unidbg.pointer.UnidbgPointer;</span><br><span class="line">import com.github.unidbg.utils.Inspector;</span><br><span class="line">import com.sun.jna.Pointer;</span><br><span class="line">import org.apache.log4j.Level;</span><br><span class="line">import org.apache.log4j.Logger;</span><br><span class="line"></span><br><span class="line">import javax.crypto.Mac;</span><br><span class="line">import java.io.File;</span><br><span class="line">import java.security.MessageDigest;</span><br><span class="line">import java.security.NoSuchAlgorithmException;</span><br><span class="line">import java.util.*;</span><br><span class="line">//import com.github.unidbg.pointer.Pointer;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">public class Signer extends AbstractJni implements IOResolver &#123;</span><br><span class="line">    @Override</span><br><span class="line">    public FileResult resolve(Emulator emulator, String pathname, int oflags) &#123;</span><br><span class="line">        System.out.println(&quot;file open:&quot;+pathname);</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private final AndroidEmulator emulator;</span><br><span class="line">    private final VM vm;</span><br><span class="line">    private final Module module;</span><br><span class="line">    private final DvmObject NativeLibHelper;</span><br><span class="line"></span><br><span class="line">    Signer() &#123;</span><br><span class="line">        // 创建模拟器实例</span><br><span class="line">        emulator = AndroidEmulatorBuilder</span><br><span class="line">                .for64Bit() // 我选择分析 ARM64 的 SO</span><br><span class="line">                .setProcessName(&quot;com.example.aes&quot;) // 传入进程名</span><br><span class="line">                .build();</span><br><span class="line">        // 获取模拟器的内存操作接口</span><br><span class="line">        final Memory memory = emulator.getMemory();</span><br><span class="line">        // 设置系统类库解析</span><br><span class="line">        memory.setLibraryResolver(new AndroidResolver(23));</span><br><span class="line">        // 创建Android虚拟机,传入APK，Unidbg可以替我们做部分签名校验的工作</span><br><span class="line">        vm = emulator.createDalvikVM(new File(&quot;unidbg-android\\src\\test\\java\\com\\aes\\aes.apk&quot;));</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        vm.setJni(this); // 设置JNI</span><br><span class="line">        vm.setVerbose(true); // 打印日志</span><br><span class="line">        emulator.getSyscallHandler().addIOResolver(this);// 设置文件处理器</span><br><span class="line">        DalvikModule dm = vm.loadLibrary(&quot;aes&quot;, true); // 加载 libsigner.so，Unidbg 会到 apk 的 lib/arm64-v8a 下寻找。</span><br><span class="line">        module = dm.getModule(); //获取目标模块的句柄</span><br><span class="line"></span><br><span class="line">        dm.callJNI_OnLoad(emulator); // 调用目标 SO 的 JNI_OnLoad</span><br><span class="line">        // 构造调用目标函数的对象</span><br><span class="line">        NativeLibHelper = vm.resolveClass(&quot;com.example.aes.MainActivity&quot;).newObject(null);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        Logger.getLogger(DalvikVM64.class).setLevel(Level.DEBUG);</span><br><span class="line">        Signer signer = new Signer();</span><br><span class="line">        signer.callNsign();</span><br><span class="line">    &#125;</span><br><span class="line">    public void callNsign()&#123;</span><br><span class="line">        // arg1</span><br><span class="line">        DvmObject context = vm.resolveClass(&quot;com.example.aes.Application&quot;, vm.resolveClass(&quot;android/content/Context&quot;)).newObject(null);</span><br><span class="line">        // arg2</span><br><span class="line">        ByteArray barr2 = new ByteArray(vm, &quot;1111222233334444&quot;.getBytes());</span><br><span class="line">        // arg3</span><br><span class="line">        ByteArray barr3 = new ByteArray(vm, &quot;1234567890123456&quot;.getBytes());</span><br><span class="line">        // arg4</span><br><span class="line">        String ret = (String) (NativeLibHelper.callJniMethodObject(emulator, &quot;openssl_encrypt&quot;,  barr2, barr3).getValue());</span><br><span class="line">        System.out.println(&quot;ret &quot; + ret);</span><br><span class="line">//        Inspector.inspect(ret, &quot;result&quot;);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">//        List&lt;Object&gt; list = new ArrayList&lt;&gt;(10);</span><br><span class="line">//        // arg1 env</span><br><span class="line">//        list.add(vm.getJNIEnv());</span><br><span class="line">//        // arg2 jobject/jclazz 一般用不到，直接填0liboasiscore.so</span><br><span class="line">//        list.add(0);</span><br><span class="line">//</span><br><span class="line">//        DvmObject&lt;?&gt; p2 = vm.resolveClass(&quot;com.example.aes.Application&quot;, vm.resolveClass(&quot;android/content/Context&quot;)).newObject(null);</span><br><span class="line">//</span><br><span class="line">//        byte[] p3 = &quot;1111222233334444&quot;.getBytes();</span><br><span class="line">//        byte[] p4 = &quot;1234567890123456&quot;.getBytes();</span><br><span class="line">//</span><br><span class="line">//</span><br><span class="line">////        list.add(vm.addLocalObject(p2));</span><br><span class="line">//        list.add(vm.addLocalObject(new ByteArray(vm, p3)));</span><br><span class="line">//        list.add(vm.addLocalObject(new ByteArray(vm, p4)));</span><br><span class="line">//</span><br><span class="line">//        Number number = module.callFunction(emulator, 0x207D8, list.toArray());</span><br><span class="line">//        System.out.println(number);</span><br><span class="line">////        Number number = module.callFunction(emulator, 0xef7c, list.toArray())[0];</span><br><span class="line">//</span><br><span class="line">//        System.out.println(vm.getObject(number.intValue()).getValue());</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static byte[] hexStringToByteArray(String s) &#123;</span><br><span class="line">        int len = s.length();</span><br><span class="line">        byte[] data = new byte[len / 2];</span><br><span class="line">        for (int i = 0; i &lt; len; i += 2) &#123;</span><br><span class="line">            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) &lt;&lt; 4)</span><br><span class="line">                    + Character.digit(s.charAt(i+1), 16));</span><br><span class="line">        &#125;</span><br><span class="line">        return data;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>注意哦, 静态注册的函数, 不需要context 这个函数, 否则会报错 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java.lang.ClassCastException: class com.github.unidbg.linux.android.dvm.DvmObject cannot be cast to class com.github.unidbg.linux.android.dvm.array.ByteArray </span><br></pre></td></tr></table></figure>
+
+
+<p>我们来看看运行结果.</p>
+<p><img src="/images/2025_0506/img_12.png" alt="img_12"></p>
+<p>可以看到结果已经出来了</p>
+<p>我们先hook 列混淆函数看看, 我们使用的是 arm64 的so文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">public void hook20D2C()&#123;</span><br><span class="line">        // 加载HookZz</span><br><span class="line">        IHookZz hookZz = HookZz.getInstance(emulator);</span><br><span class="line"></span><br><span class="line">        hookZz.wrap(module.base + 0x20D2C, new WrapCallback&lt;HookZzArm64RegisterContext&gt;() &#123; // inline wrap导出函数</span><br><span class="line">            @Override</span><br><span class="line">            // 类似于 frida onEnter</span><br><span class="line">            public void preCall(Emulator&lt;?&gt; emulator, HookZzArm64RegisterContext ctx, HookEntryInfo info) &#123;</span><br><span class="line">                // 类似于Frida args[0]</span><br><span class="line">                System.out.println(ctx.getXLong(0));</span><br><span class="line">                System.out.println(ctx.getXLong(1));</span><br><span class="line">                System.out.println(ctx.getXLong(2));</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            // 类似于 frida onLeave</span><br><span class="line">            public void postCall(Emulator&lt;?&gt; emulator, HookZzArm64RegisterContext ctx, HookEntryInfo info) &#123;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>看看结果</p>
+<p><img src="/images/2025_0506/img_13.png" alt="img_13"></p>
+<p>可以看到 hook 成功了</p>
+<p>我们尝试打印一下入参 state</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">public void hook20D2C()&#123;</span><br><span class="line">        // 加载HookZz</span><br><span class="line">        IHookZz hookZz = HookZz.getInstance(emulator);</span><br><span class="line"></span><br><span class="line">        hookZz.wrap(module.base + 0x20D2C, new WrapCallback&lt;HookZzArm64RegisterContext&gt;() &#123; // inline wrap导出函数</span><br><span class="line">            @Override</span><br><span class="line">            // 类似于 frida onEnter</span><br><span class="line">            public void preCall(Emulator&lt;?&gt; emulator, HookZzArm64RegisterContext ctx, HookEntryInfo info) &#123;</span><br><span class="line">                // 类似于Frida args[0]</span><br><span class="line">                Inspector.inspect(ctx.getXPointer(0).getByteArray(0, 0x10), &quot;Arg1&quot;);</span><br><span class="line"></span><br><span class="line">//                System.out.println(ctx.getXLong(0));</span><br><span class="line">//                Inspector.inspect(ctx.getPointerArg(0), &quot;result&quot;);</span><br><span class="line">//                System.out.println(ctx.getXLong(1));</span><br><span class="line">//                System.out.println(ctx.getXLong(2));</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            // 类似于 frida onLeave</span><br><span class="line">            public void postCall(Emulator&lt;?&gt; emulator, HookZzArm64RegisterContext ctx, HookEntryInfo info) &#123;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>看看结果</p>
+<p><img src="/images/2025_0506/img_14.png" alt="img_14"></p>
+<p>那如何patch 呢，在最后一次列混淆的时候，能不能hook 的时候就patch 呢？<br>答曰: 可以！</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">public static int count = 0;</span><br><span class="line">public void hook20D2C()&#123;</span><br><span class="line">        // 加载HookZz</span><br><span class="line">        IHookZz hookZz = HookZz.getInstance(emulator);</span><br><span class="line"></span><br><span class="line">        hookZz.wrap(module.base + 0x20D2C, new WrapCallback&lt;HookZzArm64RegisterContext&gt;() &#123; // inline wrap导出函数</span><br><span class="line">            @Override</span><br><span class="line">            // 类似于 frida onEnter</span><br><span class="line">            public void preCall(Emulator&lt;?&gt; emulator, HookZzArm64RegisterContext ctx, HookEntryInfo info) &#123;</span><br><span class="line">                // 类似于Frida args[0]</span><br><span class="line">                count += 1;</span><br><span class="line">//                Inspector.inspect(ctx.getXPointer(0).getByteArray(0, 0x10), &quot;Arg1&quot;);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">                if(count % 9 == 0)&#123;</span><br><span class="line">//                    ctx.getXPointer(0).setByte(randInt(0,16), (byte) randInt(0, 255));</span><br><span class="line">                    ctx.getXPointer(0).setByte(0, (byte) 2);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            // 类似于 frida onLeave</span><br><span class="line">            public void postCall(Emulator&lt;?&gt; emulator, HookZzArm64RegisterContext ctx, HookEntryInfo info) &#123;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们来跑一下, 看看将第一个字节改为 2 后, 结果变成了什么</p>
+<p><img src="/images/2025_0506/img_15.png" alt="img_15"></p>
+<p>可以看到 结果变成了 2ee457698cd1c4cc0da65a8591ba75bc</p>
+<p>再来看看正常运行 不使用dfa 攻击， 正常的 AES ECB 的值是多少?<br>答曰:  d4e457698cd1c4930da6cb8591f075bc, 可以看到 我们成功了，结果差几个字节而已.</p>
+<p>我们来批量注入.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) &#123;</span><br><span class="line">    Logger.getLogger(DalvikVM64.class).setLevel(Level.DEBUG);</span><br><span class="line">    Signer signer = new Signer();</span><br><span class="line">    signer.hook20D2C();</span><br><span class="line">    for(int i=0; i&lt;200; i++)&#123;</span><br><span class="line">        signer.callNsign();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行看看</p>
+<p><img src="/images/2025_0506/img_16.png" alt="img_16"></p>
+<p>可以看到 多次注入结果已经打印出来了, 把日志copy 到文件中, 写个脚本批量匹配 ret, 或者改代码, 把结果保存到文件中. 我们选择后者.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">public void callNsign()&#123;</span><br><span class="line">    // arg1</span><br><span class="line">    DvmObject context = vm.resolveClass(&quot;com.example.aes.Application&quot;, vm.resolveClass(&quot;android/content/Context&quot;)).newObject(null);</span><br><span class="line">    // arg2</span><br><span class="line">    ByteArray barr2 = new ByteArray(vm, &quot;1111222233334444&quot;.getBytes());</span><br><span class="line">    // arg3</span><br><span class="line">    ByteArray barr3 = new ByteArray(vm, &quot;1234567890123456&quot;.getBytes());</span><br><span class="line">    // arg4</span><br><span class="line">    String ret = (String) (NativeLibHelper.callJniMethodObject(emulator, &quot;openssl_encrypt&quot;,  barr2, barr3).getValue());</span><br><span class="line">    System.out.println(&quot;ret &quot; + ret);</span><br><span class="line">    String path = &quot;output.txt&quot;;</span><br><span class="line">    try &#123;</span><br><span class="line">        Files.write(Paths.get(path), (ret + &quot;\n&quot;).getBytes() , StandardOpenOption.CREATE, StandardOpenOption.APPEND);</span><br><span class="line">    &#125; catch (IOException e) &#123;</span><br><span class="line">        throw new RuntimeException(e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后我们在文件首行加入正确的密文. d4e457698cd1c4930da6cb8591f075bc</p>
+<p>交给 phoenixAES 执行看看</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">import phoenixAES</span><br><span class="line"></span><br><span class="line"># phoenixAES.crack_file(&#x27;aes_128_dfa.txt&#x27;, [], True, False, 3)  # crack_file的第三个参数传入False，代表这是一个解密过程</span><br><span class="line"># phoenixAES.crack_file(&#x27;aes_dfa_result.txt&#x27;, [], True, False, 3)  # crack_file的第三个参数传入False，代表这是一个解密过程</span><br><span class="line">phoenixAES.crack_file(&#x27;output.txt&#x27;, [], True, False, 3)  # crack_file的第三个参数传入False，代表这是一个解密过程</span><br></pre></td></tr></table></figure>
+
+
+<p><img src="/images/2025_0506/img_17.png" alt="img_17"></p>
+<p>呃, 好像结果并没有出来, why????</p>
+<p>是因为太少了吗? 我们注入500次试试</p>
+<p><img src="/images/2025_0506/img_18.png" alt="img_18"></p>
+<p>果然 200次太少, 一辈子太长， 只求天长地久.</p>
+<p>ok, AES ECB 已知某一轮密钥, 怎么推出其他密钥，甚至初始密钥?</p>
+<p>答曰: Stark.</p>
+<p><img src="/images/2025_0506/img_19.png" alt="img_19"></p>
+<p>cyberchef 验证看看</p>
+<p><img src="/images/2025_0506/img_20.png" alt="img_20"></p>
+<p>yyds!!</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2025/05/08/%E8%AE%B0%E4%B8%80%E6%AC%A1aes-dfa-%E9%80%86%E5%90%91-frida%E6%B3%A8%E5%85%A5%E6%95%85%E9%9A%9C/" rel="next" title="记一次aes dfa 逆向,frida 注入故障">
+                <i class="fa fa-chevron-left"></i> 记一次aes dfa 逆向,frida 注入故障
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2025/05/14/%E8%AE%B0%E6%9F%90%E8%BF%90%E5%8A%A8app%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/" rel="prev" title="记某app逆向分析">
+                记某app逆向分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">18</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8E%A5%E7%9D%80%E4%B8%8A%E7%AF%87-%E4%B8%8A%E7%AF%87%E4%BD%BF%E7%94%A8%E7%9A%84%E6%98%AF-frida-%E6%B3%A8%E5%85%A5%E6%95%85%E9%9A%9C-%E6%88%91%E4%BB%AC%E8%BF%99%E7%AF%87%E4%BD%BF%E7%94%A8-unidbg-%E6%9D%A5%E6%B3%A8%E5%85%A5%E6%95%85%E9%9A%9C"><span class="nav-number">1.</span> <span class="nav-text">接着上篇, 上篇使用的是 frida 注入故障, 我们这篇使用 unidbg 来注入故障</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chilly</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
