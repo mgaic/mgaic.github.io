@@ -254,6 +254,461 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/04/29/sha256-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mgaic">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2025/04/29/sha256-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" itemprop="url">sha256 学习笔记</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2025-04-29T11:32:28+08:00">
+                2025-04-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%80%86%E5%90%91/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h4 id="step1-常量初始化"><a href="#step1-常量初始化" class="headerlink" title="step1 常量初始化"></a>step1 常量初始化</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">h0 := 0x6a09e667</span><br><span class="line">h1 := 0xbb67ae85</span><br><span class="line">h2 := 0x3c6ef372</span><br><span class="line">h3 := 0xa54ff53a</span><br><span class="line">h4 := 0x510e527f</span><br><span class="line">h5 := 0x9b05688c</span><br><span class="line">h6 := 0x1f83d9ab</span><br><span class="line">h7 := 0x5be0cd19</span><br></pre></td></tr></table></figure>
+<p>这八个初始向量怎么来的?<br>答曰: 前八个质数取根号后的值 取小数部分, 然后乘以2的32次方, 对结果取整 就是初始向量.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">import math</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">第一个8个素数</span></span><br><span class="line">primes = [2, 3, 5, 7, 11, 13, 17, 19]</span><br><span class="line"></span><br><span class="line">H = []</span><br><span class="line"></span><br><span class="line">for p in primes:</span><br><span class="line">    sqrt_p = math.sqrt(p)</span><br><span class="line">    sqrt_p = p ** (1/2)</span><br><span class="line">    frac_part = sqrt_p - int(sqrt_p)  # 提取小数部分</span><br><span class="line">    value = int(frac_part * (2**32))  # 小数部分 * 2^32，再取整</span><br><span class="line">    H.append(value)</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">打印结果</span></span><br><span class="line">for h in H:</span><br><span class="line">    print(hex(h))</span><br></pre></td></tr></table></figure>
+
+<h4 id="step2-常量64位-K表"><a href="#step2-常量64位-K表" class="headerlink" title="step2 常量64位 K表"></a>step2 常量64位 K表</h4><p>如果生成的？<br>答曰： 前64个质数，取立方根, 跟8位常量的生成算法一样， 只是取的是立方根, 下面给出代码</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">import math</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">先生成前64个素数</span></span><br><span class="line">def get_first_n_primes(n):</span><br><span class="line">    primes = []</span><br><span class="line">    candidate = 2</span><br><span class="line">    while len(primes) &lt; n:</span><br><span class="line">        is_prime = True</span><br><span class="line">        for p in primes:</span><br><span class="line">            if p * p &gt; candidate:</span><br><span class="line">                break</span><br><span class="line">            if candidate % p == 0:</span><br><span class="line">                is_prime = False</span><br><span class="line">                break</span><br><span class="line">        if is_prime:</span><br><span class="line">            primes.append(candidate)</span><br><span class="line">        candidate += 1</span><br><span class="line">    return primes</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">计算K表</span></span><br><span class="line">def generate_sha256_k():</span><br><span class="line">    primes = get_first_n_primes(64)</span><br><span class="line">    K = []</span><br><span class="line">    for p in primes:</span><br><span class="line">        cbrt = p ** (1/3)</span><br><span class="line">        frac_part = cbrt - int(cbrt)</span><br><span class="line">        value = int(frac_part * (2**32))</span><br><span class="line">        K.append(value)</span><br><span class="line">    return K</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">打印结果</span></span><br><span class="line">K = generate_sha256_k()</span><br><span class="line">for i, k in enumerate(K):</span><br><span class="line">    print(f&quot;K[&#123;i&#125;] = 0x&#123;k:08x&#125;&quot;)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="综上，这些常量也只是根据质数生成的-换一批质数-获取随机常量就可以达到魔改的目的"><a href="#综上，这些常量也只是根据质数生成的-换一批质数-获取随机常量就可以达到魔改的目的" class="headerlink" title="综上，这些常量也只是根据质数生成的, 换一批质数, 获取随机常量就可以达到魔改的目的"></a>综上，这些常量也只是根据质数生成的, 换一批质数, 获取随机常量就可以达到魔改的目的</h4><h4 id="step-3-填充"><a href="#step-3-填充" class="headerlink" title="step 3 填充"></a>step 3 填充</h4><p>假设有数据 ‘abc’, 用16进制表示 是</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">61626300 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span><br><span class="line">00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span><br></pre></td></tr></table></figure>
+
+<p>0x61 是 ‘a’的 ascii 码<br>0x62 是 ‘b’的 ascii 码<br>0x63 是 ‘c’的 ascii 码</p>
+<p>将数据尾部添加一个 bit’1’, 然后再添加若干个 bit’0’, 凑够 448 位<br>448 + 64 &#x3D; 512, 为什么要凑 448 因为还有 64位置是用来记录数据的长度的。 448位记录是的数据 64位记录的是长度</p>
+<p>这样数据在内存中就变成了如下分布</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">61626380 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span><br><span class="line">00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000018</span><br></pre></td></tr></table></figure>
+
+<p>0x80 是 10000000的hex表示.<br>0x18 对应十进制是 24, 正好就是 abc 所占的bit</p>
+<h4 id="计算-生成-w0-w63"><a href="#计算-生成-w0-w63" class="headerlink" title="计算, 生成 w0-w63"></a>计算, 生成 w0-w63</h4><p>w0-w15 就是原来的数据.</p>
+<p>w16-w63 根据如下算法生成</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line">def _sigma0(num: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    num = (_rotate_right(num, 7) ^</span><br><span class="line">           _rotate_right(num, 18) ^</span><br><span class="line">           (num &gt;&gt; 3))</span><br><span class="line">    return num</span><br><span class="line"></span><br><span class="line">def _sigma1(num: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    num = (_rotate_right(num, 17) ^</span><br><span class="line">           _rotate_right(num, 19) ^</span><br><span class="line">           (num &gt;&gt; 10))</span><br><span class="line">    return num</span><br><span class="line"></span><br><span class="line">def _capsigma0(num: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    num = (_rotate_right(num, 2) ^</span><br><span class="line">           _rotate_right(num, 13) ^</span><br><span class="line">           _rotate_right(num, 22))</span><br><span class="line">    return num</span><br><span class="line"></span><br><span class="line">def _capsigma1(num: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    num = (_rotate_right(num, 6) ^</span><br><span class="line">           _rotate_right(num, 11) ^</span><br><span class="line">           _rotate_right(num, 25))</span><br><span class="line">    return num</span><br><span class="line"></span><br><span class="line">def _ch(x: int, y: int, z: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    return (x &amp; y) ^ (~x &amp; z)</span><br><span class="line"></span><br><span class="line">def _maj(x: int, y: int, z: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    return (x &amp; y) ^ (x &amp; z) ^ (y &amp; z)</span><br><span class="line"></span><br><span class="line">def _rotate_right(num: int, shift: int, size: int = 32):</span><br><span class="line">    &quot;&quot;&quot;Rotate an integer right.&quot;&quot;&quot;</span><br><span class="line">    return (num &gt;&gt; shift) | (num &lt;&lt; size - shift)</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">W = []</span><br><span class="line">for t in range(0, 64):</span><br><span class="line">    if t &lt;= 15:</span><br><span class="line">        # adds the t&#x27;th 32 bit word of the block,</span><br><span class="line">        # starting from leftmost word</span><br><span class="line">        # 4 bytes at a time</span><br><span class="line">        W.append(bytes(message_block[t*4:(t*4)+4]))</span><br><span class="line">    else:</span><br><span class="line">        term1 = _sigma1(int.from_bytes(W[t-2], &#x27;big&#x27;))</span><br><span class="line">        term2 = int.from_bytes(W[t-7], &#x27;big&#x27;)</span><br><span class="line">        term3 = _sigma0(int.from_bytes(W[t-15], &#x27;big&#x27;))</span><br><span class="line">        term4 = int.from_bytes(W[t-16], &#x27;big&#x27;)</span><br><span class="line"></span><br><span class="line">        # append a 4-byte byte object</span><br><span class="line">        schedule = ((term1 + term2 + term3 + term4) % 2**32).to_bytes(4, &#x27;big&#x27;)</span><br><span class="line">        W.append(schedule)</span><br><span class="line"></span><br><span class="line">assert len(W) == 64</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="接下给出sha256-完整代码"><a href="#接下给出sha256-完整代码" class="headerlink" title="接下给出sha256 完整代码"></a>接下给出sha256 完整代码</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br></pre></td><td class="code"><pre><span class="line">&quot;&quot;&quot;This Python module is an implementation of the SHA-256 algorithm.</span><br><span class="line">From https://github.com/keanemind/Python-SHA-256&quot;&quot;&quot;</span><br><span class="line"></span><br><span class="line">K = [</span><br><span class="line">    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,</span><br><span class="line">    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,</span><br><span class="line">    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,</span><br><span class="line">    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,</span><br><span class="line">    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,</span><br><span class="line">    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,</span><br><span class="line">    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,</span><br><span class="line">    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">def generate_hash(message: bytearray) -&gt; bytearray:</span><br><span class="line">    &quot;&quot;&quot;Return a SHA-256 hash from the message passed.</span><br><span class="line">    The argument should be a bytes, bytearray, or</span><br><span class="line">    string object.&quot;&quot;&quot;</span><br><span class="line"></span><br><span class="line">    if isinstance(message, str):</span><br><span class="line">        message = bytearray(message, &#x27;ascii&#x27;)</span><br><span class="line">    elif isinstance(message, bytes):</span><br><span class="line">        message = bytearray(message)</span><br><span class="line">    elif not isinstance(message, bytearray):</span><br><span class="line">        raise TypeError</span><br><span class="line"></span><br><span class="line">    # Padding</span><br><span class="line">    length = len(message) * 8 # len(message) is number of BYTES!!!</span><br><span class="line">    message.append(0x80)</span><br><span class="line">    while (len(message) * 8 + 64) % 512 != 0:</span><br><span class="line">        message.append(0x00)</span><br><span class="line"></span><br><span class="line">    message += length.to_bytes(8, &#x27;big&#x27;) # pad to 8 bytes or 64 bits</span><br><span class="line"></span><br><span class="line">    assert (len(message) * 8) % 512 == 0, &quot;Padding did not complete properly!&quot;</span><br><span class="line"></span><br><span class="line">    # Parsing</span><br><span class="line">    blocks = [] # contains 512-bit chunks of message</span><br><span class="line">    for i in range(0, len(message), 64): # 64 bytes is 512 bits</span><br><span class="line">        blocks.append(message[i:i+64])</span><br><span class="line"></span><br><span class="line">    # Setting Initial Hash Value</span><br><span class="line">    h0 = 0x6a09e667</span><br><span class="line">    h1 = 0xbb67ae85</span><br><span class="line">    h2 = 0x3c6ef372</span><br><span class="line">    h3 = 0xa54ff53a</span><br><span class="line">    h5 = 0x9b05688c</span><br><span class="line">    h4 = 0x510e527f</span><br><span class="line">    h6 = 0x1f83d9ab</span><br><span class="line">    h7 = 0x5be0cd19</span><br><span class="line"></span><br><span class="line">    # SHA-256 Hash Computation</span><br><span class="line">    for message_block in blocks:</span><br><span class="line">        # Prepare message schedule</span><br><span class="line">        message_schedule = []</span><br><span class="line">        for t in range(0, 64):</span><br><span class="line">            if t &lt;= 15:</span><br><span class="line">                # adds the t&#x27;th 32 bit word of the block,</span><br><span class="line">                # starting from leftmost word</span><br><span class="line">                # 4 bytes at a time</span><br><span class="line">                message_schedule.append(bytes(message_block[t*4:(t*4)+4]))</span><br><span class="line">            else:</span><br><span class="line">                term1 = _sigma1(int.from_bytes(message_schedule[t-2], &#x27;big&#x27;))</span><br><span class="line">                term2 = int.from_bytes(message_schedule[t-7], &#x27;big&#x27;)</span><br><span class="line">                term3 = _sigma0(int.from_bytes(message_schedule[t-15], &#x27;big&#x27;))</span><br><span class="line">                term4 = int.from_bytes(message_schedule[t-16], &#x27;big&#x27;)</span><br><span class="line"></span><br><span class="line">                # append a 4-byte byte object</span><br><span class="line">                schedule = ((term1 + term2 + term3 + term4) % 2**32).to_bytes(4, &#x27;big&#x27;)</span><br><span class="line">                message_schedule.append(schedule)</span><br><span class="line"></span><br><span class="line">        assert len(message_schedule) == 64</span><br><span class="line"></span><br><span class="line">        # Initialize working variables</span><br><span class="line">        a = h0</span><br><span class="line">        b = h1</span><br><span class="line">        c = h2</span><br><span class="line">        d = h3</span><br><span class="line">        e = h4</span><br><span class="line">        f = h5</span><br><span class="line">        g = h6</span><br><span class="line">        h = h7</span><br><span class="line"></span><br><span class="line">        # Iterate for t=0 to 63</span><br><span class="line">        for t in range(64):</span><br><span class="line">            t1 = ((h + _capsigma1(e) + _ch(e, f, g) + K[t] +</span><br><span class="line">                   int.from_bytes(message_schedule[t], &#x27;big&#x27;)) % 2**32)</span><br><span class="line"></span><br><span class="line">            t2 = (_capsigma0(a) + _maj(a, b, c)) % 2**32</span><br><span class="line"></span><br><span class="line">            h = g</span><br><span class="line">            g = f</span><br><span class="line">            f = e</span><br><span class="line">            e = (d + t1) % 2**32</span><br><span class="line">            d = c</span><br><span class="line">            c = b</span><br><span class="line">            b = a</span><br><span class="line">            a = (t1 + t2) % 2**32</span><br><span class="line"></span><br><span class="line">        # Compute intermediate hash value</span><br><span class="line">        h0 = (h0 + a) % 2**32</span><br><span class="line">        h1 = (h1 + b) % 2**32</span><br><span class="line">        h2 = (h2 + c) % 2**32</span><br><span class="line">        h3 = (h3 + d) % 2**32</span><br><span class="line">        h4 = (h4 + e) % 2**32</span><br><span class="line">        h5 = (h5 + f) % 2**32</span><br><span class="line">        h6 = (h6 + g) % 2**32</span><br><span class="line">        h7 = (h7 + h) % 2**32</span><br><span class="line"></span><br><span class="line">    return ((h0).to_bytes(4, &#x27;big&#x27;) + (h1).to_bytes(4, &#x27;big&#x27;) +</span><br><span class="line">            (h2).to_bytes(4, &#x27;big&#x27;) + (h3).to_bytes(4, &#x27;big&#x27;) +</span><br><span class="line">            (h4).to_bytes(4, &#x27;big&#x27;) + (h5).to_bytes(4, &#x27;big&#x27;) +</span><br><span class="line">            (h6).to_bytes(4, &#x27;big&#x27;) + (h7).to_bytes(4, &#x27;big&#x27;))</span><br><span class="line"></span><br><span class="line">def _sigma0(num: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    num = (_rotate_right(num, 7) ^</span><br><span class="line">           _rotate_right(num, 18) ^</span><br><span class="line">           (num &gt;&gt; 3))</span><br><span class="line">    return num</span><br><span class="line"></span><br><span class="line">def _sigma1(num: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    num = (_rotate_right(num, 17) ^</span><br><span class="line">           _rotate_right(num, 19) ^</span><br><span class="line">           (num &gt;&gt; 10))</span><br><span class="line">    return num</span><br><span class="line"></span><br><span class="line">def _capsigma0(num: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    num = (_rotate_right(num, 2) ^</span><br><span class="line">           _rotate_right(num, 13) ^</span><br><span class="line">           _rotate_right(num, 22))</span><br><span class="line">    return num</span><br><span class="line"></span><br><span class="line">def _capsigma1(num: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    num = (_rotate_right(num, 6) ^</span><br><span class="line">           _rotate_right(num, 11) ^</span><br><span class="line">           _rotate_right(num, 25))</span><br><span class="line">    return num</span><br><span class="line"></span><br><span class="line">def _ch(x: int, y: int, z: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    return (x &amp; y) ^ (~x &amp; z)</span><br><span class="line"></span><br><span class="line">def _maj(x: int, y: int, z: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    return (x &amp; y) ^ (x &amp; z) ^ (y &amp; z)</span><br><span class="line"></span><br><span class="line">def _rotate_right(num: int, shift: int, size: int = 32):</span><br><span class="line">    &quot;&quot;&quot;Rotate an integer right.&quot;&quot;&quot;</span><br><span class="line">    return (num &gt;&gt; shift) | (num &lt;&lt; size - shift)</span><br><span class="line"></span><br><span class="line">if __name__ == &quot;__main__&quot;:</span><br><span class="line">    print(generate_hash(&quot;Hello&quot;).hex())</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/04/15/hexo-%E6%81%A2%E5%A4%8D%E8%AE%B0%E5%BD%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mgaic">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2025/04/15/hexo-%E6%81%A2%E5%A4%8D%E8%AE%B0%E5%BD%95/" itemprop="url">hexo 恢复记录</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2025-04-15T16:29:11+08:00">
+                2025-04-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h4 id="1-安装-nvm-类似于python的-conda"><a href="#1-安装-nvm-类似于python的-conda" class="headerlink" title="1.安装 nvm (类似于python的 conda)"></a>1.安装 nvm (类似于python的 conda)</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="2-安装-nodejs"><a href="#2-安装-nodejs" class="headerlink" title="2. 安装 nodejs"></a>2. 安装 nodejs</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ nvm install 18</span><br><span class="line">$ nvm use 18</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-clone-项目"><a href="#3-clone-项目" class="headerlink" title="3. clone 项目"></a>3. clone 项目</h4><p>由于之前deploy 过项目， 直接克隆就好</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">git <span class="built_in">clone</span> git@github.com:xxxxx/hexo_blog.git</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="4-编译"><a href="#4-编译" class="headerlink" title="4. 编译"></a>4. 编译</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">cd</span> hexo_blog</span> </span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">npm install</span> </span><br></pre></td></tr></table></figure>
+
+<h4 id="5-下载-NexT-Mist-v5-1-3-主题"><a href="#5-下载-NexT-Mist-v5-1-3-主题" class="headerlink" title="5. 下载 NexT.Mist v5.1.3 主题"></a>5. 下载 NexT.Mist v5.1.3 主题</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">git <span class="built_in">clone</span> -b v5.1.3 https://github.com/iissnan/hexo-theme-next.git themes/next</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="6-修改翻页标签乱码"><a href="#6-修改翻页标签乱码" class="headerlink" title="6. 修改翻页标签乱码"></a>6. 修改翻页标签乱码</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">参考  https://blog.csdn.net/qq_36852780/article/details/104897491</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="7-主题设置-防止404-或者页面跳转错误问题"><a href="#7-主题设置-防止404-或者页面跳转错误问题" class="headerlink" title="7.主题设置, 防止404 或者页面跳转错误问题"></a>7.主题设置, 防止404 或者页面跳转错误问题</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">修改主题包下的 _config.yml</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Schemes</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">scheme: Muse</span></span><br><span class="line">scheme: Mist</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">scheme: Pisces</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">scheme: Gemini</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">修改主题包下的 _config.yml</span></span><br><span class="line">menu:</span><br><span class="line">  home: /|| home</span><br><span class="line">  tags: /tags/|| tags</span><br><span class="line">  categories: /categories/|| th</span><br><span class="line">  archives: /archives/|| archive</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<h4 id="8-跑起来"><a href="#8-跑起来" class="headerlink" title="8. 跑起来"></a>8. 跑起来</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">hexo clean &amp;&amp; hexo g &amp;&amp; hexo s</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="9-发布"><a href="#9-发布" class="headerlink" title="9. 发布"></a>9. 发布</h4><p>需要配置git仓库, 参考 <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment">https://hexo.io/docs/one-command-deployment</a></p>
+<p>然后执行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">hexo clean &amp;&amp; hexo deploy</span></span><br></pre></td></tr></table></figure>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/09/11/frida-memery-scan/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mgaic">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2024/09/11/frida-memery-scan/" itemprop="url">frida内存扫描以及关键代码定位.</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2024-09-11T10:38:14+08:00">
+                2024-09-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%80%86%E5%90%91/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>frida 发布了新特性, 支持硬件断点, 能更好的对内存区域进行扫描, 并快速定位出哪段代码读写了这片内存区域<br>感兴趣的可以看下<br>贴上地址 <a target="_blank" rel="noopener" href="https://frida.re/news/">https://frida.re/news/</a></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2024/09/11/frida-memery-scan/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://example.com/2024/08/29/%E6%9F%90%E8%A7%86%E9%A2%91%E7%B1%BBapp%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%88%86%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1310,293 +1765,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/07/15/%E5%9F%BA%E4%BA%8Eebpf%E6%8A%93%E5%8C%85/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="mgaic">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2024/07/15/%E5%9F%BA%E4%BA%8Eebpf%E6%8A%93%E5%8C%85/" itemprop="url">ecapture 基于ebpf抓包(亲测可行)</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2024-07-15T15:30:53+08:00">
-                2024-07-15
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%80%86%E5%90%91/" itemprop="url" rel="index">
-                    <span itemprop="name">逆向</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="使用ecapture-抓包某物app-亲测可行"><a href="#使用ecapture-抓包某物app-亲测可行" class="headerlink" title="使用ecapture 抓包某物app, 亲测可行"></a>使用ecapture 抓包某物app, 亲测可行</h2><h4 id="ecapture-版本-0-8-3-手机-红米note-12t-pro-内核版本-5-10-android版本-android-13"><a href="#ecapture-版本-0-8-3-手机-红米note-12t-pro-内核版本-5-10-android版本-android-13" class="headerlink" title="ecapture 版本 0.8.3, 手机 红米note 12t pro, 内核版本 5.10. android版本 android 13"></a>ecapture 版本 0.8.3, 手机 红米note 12t pro, 内核版本 5.10. android版本 android 13</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">adb push ecapture /data/loca.tmp</span><br><span class="line">chmod +x ecapture</span><br><span class="line">./ecapture tls</span><br></pre></td></tr></table></figure>
-
-<h4 id="效果图"><a href="#效果图" class="headerlink" title="效果图"></a>效果图</h4><p>可以看到请求 响应都在里面了</p>
-<p><img src="/images/img_10.png" alt="img_1.png"></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/07/12/stackplz-trace/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="mgaic">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2024/07/12/stackplz-trace/" itemprop="url">使用 stackplz 辅助分析 anti-frida(亲测可行)</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2024-07-12T14:31:11+08:00">
-                2024-07-12
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="使用-stackplz-过anti-frida"><a href="#使用-stackplz-过anti-frida" class="headerlink" title="使用 stackplz 过anti-frida"></a>使用 stackplz 过anti-frida</h2><h4 id="一般检测frida-比较常用的一个函数是-strstr-这个函数类似于-isSubString-判断子串"><a href="#一般检测frida-比较常用的一个函数是-strstr-这个函数类似于-isSubString-判断子串" class="headerlink" title="一般检测frida 比较常用的一个函数是 strstr. 这个函数类似于 isSubString. 判断子串"></a>一般检测frida 比较常用的一个函数是 strstr. 这个函数类似于 isSubString. 判断子串</h4><h4 id="我们使用-stackplz-hook-strstr-看看是谁在调用strstr"><a href="#我们使用-stackplz-hook-strstr-看看是谁在调用strstr" class="headerlink" title="我们使用 stackplz hook strstr 看看是谁在调用strstr"></a>我们使用 stackplz hook strstr 看看是谁在调用strstr</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./stackplz -n tv.danmaku.bili -l /apex/com.android.runtime/lib64/bionic/libc.so -w strstr --stack</span><br></pre></td></tr></table></figure>
-
-<h4 id="执行结果如下"><a href="#执行结果如下" class="headerlink" title="执行结果如下"></a>执行结果如下</h4><p><img src="/images/img_2.png" alt="img_1.png"></p>
-<h4 id="看看strstr的参数-到底是不是针对一些环境的检测"><a href="#看看strstr的参数-到底是不是针对一些环境的检测" class="headerlink" title="看看strstr的参数, 到底是不是针对一些环境的检测"></a>看看strstr的参数, 到底是不是针对一些环境的检测</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/stackplz -n tv.danmaku.bili -l /apex/com.android.runtime/lib64/bionic/libc.so -w strstr[str:x0,str:x1]  -o tmp.log</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="结果如下"><a href="#结果如下" class="headerlink" title="结果如下"></a>结果如下</h4><p><img src="/images/img_3.png" alt="img_1.png"></p>
-<h4 id="google-一搜"><a href="#google-一搜" class="headerlink" title="google 一搜"></a>google 一搜</h4><p><img src="/images/img_4.png" alt="img_1.png"></p>
-<h4 id="大概率就是-libmxxxoxxdsec-so-在检测frida"><a href="#大概率就是-libmxxxoxxdsec-so-在检测frida" class="headerlink" title="大概率就是 libmxxxoxxdsec.so 在检测frida"></a>大概率就是 libmxxxoxxdsec.so 在检测frida</h4><h4 id="从hook-strstr的调用堆栈里我们可以看到是从-thread-start-开始的。-所以我们hook-thread-create-看看-创建线程比较早，所以先关掉app-执行命令后再打开app"><a href="#从hook-strstr的调用堆栈里我们可以看到是从-thread-start-开始的。-所以我们hook-thread-create-看看-创建线程比较早，所以先关掉app-执行命令后再打开app" class="headerlink" title="从hook strstr的调用堆栈里我们可以看到是从 thread_start 开始的。 所以我们hook thread_create 看看, 创建线程比较早，所以先关掉app, 执行命令后再打开app"></a>从hook strstr的调用堆栈里我们可以看到是从 thread_start 开始的。 所以我们hook thread_create 看看, 创建线程比较早，所以先关掉app, 执行命令后再打开app</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./stackplz -n tv.danmaku.bili -l /apex/com.android.runtime/lib64/bionic/libc.so -w pthread_create --stack -o tmp.log</span><br></pre></td></tr></table></figure>
-
-<h4 id="可以看到结果-有13处"><a href="#可以看到结果-有13处" class="headerlink" title="可以看到结果, 有13处"></a>可以看到结果, 有13处</h4><p><img src="/images/img_5.png" alt="img_1.png"></p>
-<h4 id="ida打开-看看-0x1d304"><a href="#ida打开-看看-0x1d304" class="headerlink" title="ida打开 看看 0x1d304"></a>ida打开 看看 0x1d304</h4><p><img src="/images/img_6.png" alt="img_1.png"></p>
-<h4 id="F5-看看"><a href="#F5-看看" class="headerlink" title="F5 看看"></a>F5 看看</h4><p><img src="/images/img_7.png" alt="img_1.png"></p>
-<p>这里很像是在创建线程。 我们试试patch, 强行让它不创建。 把 BLR X19 指令改为 nop. 在此之前还有一个问题， patch后会不会崩溃？<br>arm64 函数调用约定 返回值给x0, 我们看看后续有没有用到x0. 如果没用到我们可以这么改, 用到了程序可能就会崩溃</p>
-<h4 id="看汇编"><a href="#看汇编" class="headerlink" title="看汇编"></a>看汇编</h4><p><img src="/images/img_8.png" alt="img_1.png"></p>
-<h4 id="发现并没有用到返回值。-所以我们打开-https-armconverter-com"><a href="#发现并没有用到返回值。-所以我们打开-https-armconverter-com" class="headerlink" title="发现并没有用到返回值。 所以我们打开 https://armconverter.com/"></a>发现并没有用到返回值。 所以我们打开 <a target="_blank" rel="noopener" href="https://armconverter.com/">https://armconverter.com/</a></h4><p>看看nop 对应的机器码</p>
-<p><img src="/images/img_9.png" alt="img_1.png"></p>
-<p>用 010editor 把 BL X19 对应的机器码全部改为 1F2003D5</p>
-<h4 id="我一共patch了三处-然后把patch后的-so文件-push-到-data-app-1m1hzMqd9svUirtnyTGHvA-tv-xxxxx-xxxx-rMRttoSdjUufKzwDHC3FtQ-lib-arm64"><a href="#我一共patch了三处-然后把patch后的-so文件-push-到-data-app-1m1hzMqd9svUirtnyTGHvA-tv-xxxxx-xxxx-rMRttoSdjUufKzwDHC3FtQ-lib-arm64" class="headerlink" title="我一共patch了三处. 然后把patch后的 so文件 push 到 &#x2F;data&#x2F;app&#x2F;~~1m1hzMqd9svUirtnyTGHvA&#x3D;&#x3D;&#x2F;tv.xxxxx.xxxx-rMRttoSdjUufKzwDHC3FtQ&#x3D;&#x3D;&#x2F;lib&#x2F;arm64&#x2F;"></a>我一共patch了三处. 然后把patch后的 so文件 push 到 &#x2F;data&#x2F;app&#x2F;~~1m1hzMqd9svUirtnyTGHvA&#x3D;&#x3D;&#x2F;tv.xxxxx.xxxx-rMRttoSdjUufKzwDHC3FtQ&#x3D;&#x3D;&#x2F;lib&#x2F;arm64&#x2F;</h4><h4 id="然后frida-打开还是崩溃-发现app-又用了其他另外一个地方的-sec-so文件-把-so文件复制到两个目录下以后。发现frida-可以成功附加-最好改一下so文件的权限为-755-跟原先一致"><a href="#然后frida-打开还是崩溃-发现app-又用了其他另外一个地方的-sec-so文件-把-so文件复制到两个目录下以后。发现frida-可以成功附加-最好改一下so文件的权限为-755-跟原先一致" class="headerlink" title="然后frida 打开还是崩溃. 发现app 又用了其他另外一个地方的 sec.so文件. 把 so文件复制到两个目录下以后。发现frida 可以成功附加.  最好改一下so文件的权限为 755. 跟原先一致"></a>然后frida 打开还是崩溃. 发现app 又用了其他另外一个地方的 sec.so文件. 把 so文件复制到两个目录下以后。发现frida 可以成功附加.  最好改一下so文件的权限为 755. 跟原先一致</h4>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/">&lt;</a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
+    <a class="extend prev" rel="prev" href="/">&lt;</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/">&gt;</a>
   </nav>
 
 
@@ -1642,7 +1815,7 @@
               
                 <a href="/archives/%7C%7C%20archive">
               
-                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-count">22</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1701,7 +1874,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2025</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2026</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>

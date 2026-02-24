@@ -254,6 +254,491 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/02/24/%E6%9F%90%E6%8A%95%E5%B1%8F%E8%BD%AF%E4%BB%B6%E5%8E%BB%E9%99%A4%E5%BC%BA%E5%88%B6%E6%9B%B4%E6%96%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mgaic">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2026/02/24/%E6%9F%90%E6%8A%95%E5%B1%8F%E8%BD%AF%E4%BB%B6%E5%8E%BB%E9%99%A4%E5%BC%BA%E5%88%B6%E6%9B%B4%E6%96%B0/" itemprop="url">某投屏软件去除强制更新</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2026-02-24T16:07:41+08:00">
+                2026-02-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>2026 春节回老家了一趟， 节前跟高中同学在一张床上深入交流了一下, 还跟另外一个在非洲肯尼亚的同学打了个视频, 他们老板在那边装了星lian, 按之前的网速是没法打微信视频的. 他也算搭上老板的顺风车了, 并且还各种摸鱼，<br>北京时间是晚上十点， 他们那边大概是下午两点的样子， 边上班边跟我们视频，他做的是桥梁设计，他开了 chatgpt pro 的会员，一个月大概1000多，让gpt 生成一个 50多页的pdf, 大概已完成了 60%-80，然后再反复迭代优化提示词，听他说能否节约一般的工作时间.</p>
+<p>好了说正事， 就是这个深入交流的同学， 他家新盖了房子, 买了新的电视， 需要投屏. 有一款app 强制更新，让我帮忙看看， 于是有了这篇文章.</p>
+<p>打开app, 申请完权限后， 直接进入到了自动更新. </p>
+<p><img src="/images/20260224/img_2.png" alt="img_2.png"></p>
+<p>我们jadx 打开app, 全局搜索 “更新”</p>
+<p><img src="/images/20260224/img_4.png" alt="img_2.png"></p>
+<p>此处比较可疑，我们frida hook 看看</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Java.perform(function() &#123;</span><br><span class="line">    let MainActivity = Java.use(&quot;com.cctv.tv.mvp.ui.activity.MainActivity&quot;);</span><br><span class="line">    MainActivity[&quot;a&quot;].overload(&#x27;boolean&#x27;, &#x27;boolean&#x27;).implementation = function (z, z2) &#123;</span><br><span class="line">        console.log(`MainActivity.a is called: z=$&#123;z&#125;, z2=$&#123;z2&#125;`);</span><br><span class="line">        this[&quot;a&quot;](z, z2);</span><br><span class="line">        // this[&quot;a&quot;](false, false);</span><br><span class="line">        // return this[&quot;a&quot;](true, false);</span><br><span class="line">        console.log(111111)</span><br><span class="line">        // return this[&quot;a&quot;](false, true);</span><br><span class="line">        // return this[&quot;a&quot;](false, false);</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>结果是 MainActivity.a is called: z&#x3D;true, z2&#x3D;true<br>我们使用 frida 改改参数看看能否绕过更新, 亲测不管怎么组合， 都不能绕过更新。</p>
+<p>于是问 chatgpt 如何绕过强制更新, gpt 说某些强制更新是通过服务端下发的数据来判断是否本地需要更新的， 于是试试看 charles 抓包<br>看 charles 能否 patch 掉自动更新.</p>
+<p><img src="/images/20260224/img.png" alt="img.png"></p>
+<p>直接 block List, 直接禁用该请求, 发现app 强制更新不弹出了. 直接成功.<br>还有一个办法， compose 这个请求，将返回值中的 versionCode 和 versionName 置为空 也可以跳过强制更新.</p>
+<p>到此处已经有可用方案了， 就是通过 charles patch response.  但我同学不懂技术，他要装charles, 并且还要设置证书， 我想着有没有什么apk, 可以拦截 url, 于是尝试了 netguard  工具, 好像无法像charles 一样直接拦截, 我想如果有的话，应该就是小黄鸟这种或者如果设备够新的话，支持ebpf 特性，应该可以实现.</p>
+<p>这里我没有试小黄鸟了. 我想重打包一下 apk, 这样，我这个不懂技术但深入交流过的同学就可以傻瓜式的使用了.</p>
+<p>于是打开 AndroidManifest.xml, 找到 启动 activity.  </p>
+<p><img src="/images/20260224/img_5.png" alt="img.png"></p>
+<p>大致看一下整个MainActivity, 有几处更新字眼， 大概率是有更新相关的逻辑的,  然后将整个 MainActivity 的代码 copy 给 chatgpt, 让它帮我们分析一下, 更新的逻辑大致在哪里.</p>
+<p>gpt 回答说是在 onResume 里， jadx 查看 onResume </p>
+<p><img src="/images/20260224/img_6.png" alt="img.png"></p>
+<p>发现并没有反编译完全， 这里不想去用 android killer 等其他工具了, 直接看 smali 代码吧， 之前帮另一个同学重打包过一个应用， 也是改的 smali 代码， 不过那个时候是 2022年， 还没有 gpt 这么强大的工具, 需要自己学习，硬改smali 代码, 添加寄存器，用前还要申请， 一不小心就崩溃了.</p>
+<p>这里我们让gpt 帮我们修改.</p>
+<p><img src="/images/20260224/img_7.png" alt="img.png"></p>
+<p>大致是patch, 将检测的结果颠倒黑白， 即可.</p>
+<p>于是我们试试将源代码转化为 smali 代码.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar apktool_3.0.1.jar d   video.apk -o app_src</span><br></pre></td></tr></table></figure>
+
+<p>然后按照gpt 的方法， 将 sget-boolean v0, Lc&#x2F;e&#x2F;c&#x2F;l&#x2F;a&#x2F;h;-&gt;c:Z 改为 const&#x2F;4 v0, 0x1. 让后续的条件永远不会满足，这样也不会走强制更新的逻辑.</p>
+<p>然后将 smali 转为 java 代码.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar apktool_3.0.1.jar b app_src -o unsigned_video.apk</span><br></pre></td></tr></table></figure>
+
+
+<p>然后这个时候还需要对 apk 进行签名. 否则<br>adb install unsigned_video.apk<br>Performing Streamed Install<br>adb: failed to install yangshi.apk: Failure [INSTALL_PARSE_FAILED_NO_CERTIFICATES: Failed collecting certificates for &#x2F;data&#x2F;app&#x2F;vmdl1002557303.tmp&#x2F;base.apk: Failed to collect certificates from &#x2F;data&#x2F;app&#x2F;vmdl1002557303.tmp&#x2F;base.apk: Attempt to get length of null array]</p>
+<p>签名</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/techexpertize/SignApk.git</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar signapk/signapk.jar SignApk/certificate.pem signapk/testkey.pk8 unsigned_video.apk signed_video.apk</span><br></pre></td></tr></table></figure>
+
+<p>然后安装</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb install signed_video.apk</span><br></pre></td></tr></table></figure>
+
+<p>打开后发现，app正常使用，不会强制更新了.</p>
+<p>总结:</p>
+<ol>
+<li>这个apk 33M, 比较小, 强制更新的逻辑在 MainActivity, 将这个类的代码直接扔给gpt, 直接给出了结果，运气比较好.</li>
+<li>巩固了如何对 apk 进行反编译, 回编, 签名.  </li>
+<li>改 smali 代码是 gpt 帮忙生成的. 如果自己改, 可能会面临闪退， 并且你不知道是不是由于有签名验证造成的。 不过这个应用是没有签名检测的. 如果想验证是不是smali 语法导致的闪退也很简单, 添加一个无关紧要的 smali 代码，例如打个日志，或者print hello 等，就是特别简单不会出错的代码， 然后再重打包，如果崩溃了就是有apk签名检测. 如果没有崩，说明就是smali 语法问题.</li>
+</ol>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/11/magisk-%E6%A8%A1%E5%9D%97%E5%85%A8%E5%B1%80%E6%94%B9%E6%9C%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mgaic">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2025/10/11/magisk-%E6%A8%A1%E5%9D%97%E5%85%A8%E5%B1%80%E6%94%B9%E6%9C%BA/" itemprop="url">编写magisk 模块修改机型</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2025-10-11T14:13:05+08:00">
+                2025-10-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="修改机型记录"><a href="#修改机型记录" class="headerlink" title="修改机型记录"></a>修改机型记录</h3><h5 id="1-Magisk-模板下载"><a href="#1-Magisk-模板下载" class="headerlink" title="1.Magisk 模板下载"></a>1.Magisk 模板下载</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/Petit-Abba/Magisk-Modules-Template-ge20.4.git</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="2-修改-system-prop-文件"><a href="#2-修改-system-prop-文件" class="headerlink" title="2.修改 system.prop 文件"></a>2.修改 system.prop 文件</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">ro.product.brand=google</span><br><span class="line">ro.product.device=husky</span><br><span class="line">ro.product.manufacturer=Google</span><br><span class="line">ro.product.model=Pixel 9 Pro</span><br><span class="line">ro.product.name=husky</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">以下针对分区/多产品命名空间，尽量统一</span></span><br><span class="line">ro.product.system.brand=google</span><br><span class="line">ro.product.system.device=husky</span><br><span class="line">ro.product.system.manufacturer=Google</span><br><span class="line">ro.product.system.model=Pixel 8 Pro</span><br><span class="line">ro.product.system.name=husky</span><br><span class="line"></span><br><span class="line">ro.product.system_ext.brand=google</span><br><span class="line">ro.product.system_ext.device=husky</span><br><span class="line">ro.product.system_ext.manufacturer=Google</span><br><span class="line">ro.product.system_ext.model=Pixel 9 Pro</span><br><span class="line">ro.product.system_ext.name=husky</span><br><span class="line"></span><br><span class="line">ro.product.vendor.brand=google</span><br><span class="line">ro.product.vendor.device=husky</span><br><span class="line">ro.product.vendor.manufacturer=Google</span><br><span class="line">ro.product.vendor.model=Pixel 9 Pro</span><br><span class="line">ro.product.vendor.name=husky</span><br><span class="line"></span><br><span class="line">ro.product.odm.brand=google</span><br><span class="line">ro.product.odm.device=husky</span><br><span class="line">ro.product.odm.manufacturer=Google</span><br><span class="line">ro.product.odm.model=Pixel 9 Pro</span><br><span class="line">ro.product.odm.name=husky</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">可选：指纹与描述（部分应用校验）</span></span><br><span class="line">ro.build.fingerprint=google/husky/husky:14/UQ1A.240705.004/1234567:user/release-keys</span><br><span class="line">ro.build.description=husky-user 14 UQ1A.240705.004 1234567 release-keys</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="修改模块名，版本等信息-编辑-module-prop"><a href="#修改模块名，版本等信息-编辑-module-prop" class="headerlink" title="修改模块名，版本等信息. 编辑 module.prop"></a>修改模块名，版本等信息. 编辑 module.prop</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash"><span class="built_in">id</span> 只能填 字母 数字 半角符号</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="built_in">id</span>=Module-Template</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">name=模块模板</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">version=v1</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">versionCode=1</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">author=Petit Abba</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">description=一个简短的描述</span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash"><span class="built_in">id</span> 只能填 字母 数字 半角符号</span></span><br><span class="line">id=buildprop_modify</span><br><span class="line">name=buildprop_modify by chill wei</span><br><span class="line">version=v4</span><br><span class="line">versionCode=1</span><br><span class="line">author=chill wei</span><br><span class="line">description=build prop modify</span><br></pre></td></tr></table></figure>
+
+<p>然后在项目根目录下, 选中所有文件, 压缩成 zip文件, 不可以在文件夹外部，压缩。否则安装该模块的时候会报错 unzip error. 别问我怎么知道的.</p>
+<p>没错就是这么简单</p>
+<p><img src="/images/2025_0702/img_12.png" alt="img_11"></p>
+<p>然后安装. 重启后打开手机查看器。发现机型都变成了 Pixel 9 Pro</p>
+<p><img src="/images/2025_0702/img_13.png" alt="img_11"></p>
+<p>下面给出手机查看器 apk.<br><a href="/downloads/deviceInfo.apk">点我下载 手机查看器.apk</a></p>
+<p>还有另外一个软件 AIDA64. 看看生效没</p>
+<p><img src="/images/2025_0702/img_14.png" alt="img_11"></p>
+<p>可以看到也是生效的. </p>
+<p>给出 aida64 的下载地址<br><a href="/downloads/aida64-v211.apk">aida64-v211.apk</a></p>
+<h3 id="测试另外一个-xposed-模块-看是否可行"><a href="#测试另外一个-xposed-模块-看是否可行" class="headerlink" title="测试另外一个 xposed 模块, 看是否可行"></a>测试另外一个 xposed 模块, 看是否可行</h3><p>试试另外一个xposed 模块 -&gt; Guise. 看看效果如何<br><a href="/downloads/Guise_1.1.2.apk">点击下载 Guise_1.1.2.apk</a></p>
+<p>一键随机</p>
+<p><img src="/images/2025_0702/img_16.png" alt="img_11"></p>
+<p>然后打开app, 抓包看看是否生效.</p>
+<p><img src="/images/2025_0702/img_17.png" alt="img_11"></p>
+<p>可以看到机型修改已经生效</p>
+<h3 id="magisk-的-resetprop-也可以实现类似的功能"><a href="#magisk-的-resetprop-也可以实现类似的功能" class="headerlink" title="magisk 的 resetprop 也可以实现类似的功能"></a>magisk 的 resetprop 也可以实现类似的功能</h3><p>参考 <a target="_blank" rel="noopener" href="https://yydsxx.com/blog/change%20device%20model/">https://yydsxx.com/blog/change%20device%20model/</a></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">resetprop ro.product.manufacturer Xiaomi</span><br><span class="line">resetprop ro.product.brand Redmi</span><br><span class="line">resetprop ro.product.model 22127RK46C</span><br><span class="line">resetprop ro.product.device socrates</span><br><span class="line">resetprop ro.build.product socrates</span><br><span class="line"></span><br><span class="line">stop;start; #一定要通过该方式重启</span><br></pre></td></tr></table></figure>
+
+<p>打开 AIDA64, 发现成功了</p>
+<p><img src="/images/2025_0702/img_18.png" alt="img_11"></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/09/01/rock5b-%E6%8A%98%E8%85%BE%E8%AE%B0%E5%BD%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mgaic">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2025/09/01/rock5b-%E6%8A%98%E8%85%BE%E8%AE%B0%E5%BD%95/" itemprop="url">rock5b plus 折腾记录</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2025-09-01T11:43:15+08:00">
+                2025-09-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>从淘宝上了个 rock5b+ 的板子, 16G内存, 买了七彩虹的固态 256G, 129 RMB.</p>
+<h4 id="踩坑一"><a href="#踩坑一" class="headerlink" title="踩坑一:"></a>踩坑一:</h4><p>镜像无法从U盘刷, 以前windows 我都是直接通过 软碟通把系统镜像直接刷入u盘, 但rock5b+ 貌似不支持这么干. 无奈我买了个读卡器加SD卡, 我的板子到了 这个读卡器和SD卡都还没到, 又需要等两天. </p>
+<p>tips: 貌似固态也是可以用来刷写镜像的, 但是需要硬盘盒这种连接设备</p>
+<h4 id="装备都到了"><a href="#装备都到了" class="headerlink" title="装备都到了"></a>装备都到了</h4><p>ok 今天装备都齐了, 一个 sd卡， 一个读卡器， 这两个用来装系统, 一个固态硬盘，一个风扇， 一个 rock5b+板子.</p>
+<p>如图</p>
+<p><img src="/images/2025_0702/img_4.png" alt="img_11"></p>
+<h4 id="下载系统镜像"><a href="#下载系统镜像" class="headerlink" title="下载系统镜像."></a>下载系统镜像.</h4><p>从 第三方下载 ubuntu 镜像.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://joshua-riek.github.io/ubuntu-rockchip-download/boards/rock-5b-plus.html</span><br></pre></td></tr></table></figure>
+
+<p>我选择的是这个镜像.</p>
+<p><img src="/images/2025_0702/img_3.png" alt="img_11"></p>
+<h4 id="开工把，-刷系统"><a href="#开工把，-刷系统" class="headerlink" title="开工把， 刷系统."></a>开工把， 刷系统.</h4><ol>
+<li><p>按照 <a target="_blank" rel="noopener" href="https://docs.radxa.com/rock5/rock5b/download?HardwareDesign=ROCK+5B+">官方文档</a> 下载  SPL Loader， SPI Image. 还有 balenaEtcher-Setup-1.18.11.exe</p>
+</li>
+<li><p>打开 balendEtcher, 选择ubuntu 镜像文件, 然后我们的 SD卡， 然后点击烧录，显示正在烧录中，  界面如下：</p>
+</li>
+</ol>
+<p><img src="/images/2025_0702/img_5.png" alt="img_11"></p>
+<p>等了大概7，8分钟， 显示如下界面:</p>
+<p><img src="/images/2025_0702/img_6.png" alt="img_11"></p>
+<p>看来烧录镜像估计要 10分钟左右， 我的机器是 windows 11, 32G内存, 512G rom, 处理器是 intel Ultra5 125H, 这颗U 相当于 i5-13500H 的性能， 这个配置下, 烧录系统镜像需要10分钟.</p>
+<p><img src="/images/2025_0702/img_7.png" alt="img_11"></p>
+<p>ok, fine, 太好了， 烧录好了.</p>
+<h5 id="自我怀疑"><a href="#自我怀疑" class="headerlink" title="自我怀疑"></a>自我怀疑</h5><p>按开机键发现没有任务反应， 风扇也不转. 我甚至想退货了， 买到了坏的板子.<br>然后还是按照官方的文档， 发现没有插sd卡到主板上， 插上sd卡后，发现主板的等从绿色变成了蓝色. 然后再按开机键，过了几秒，指示灯从蓝灯变成了蓝绿交替， 进入系统了， 然后进入了熟悉的图形界面 Ubuntu 的界面，简单设置了语言， 时区， 账密后，进入了系统。</p>
+<p>参考  <a target="_blank" rel="noopener" href="https://docs.radxa.com/rock5/rock5b/getting-started/interface-usage/fan">https://docs.radxa.com/rock5/rock5b/getting-started/interface-usage/fan</a><br>后面问客服了解到需要温度达到60度风扇才转. 好吧 再忍一忍，起码线上能进入系统了， 说明1000大洋没买废铁。</p>
+<h4 id="踩坑二："><a href="#踩坑二：" class="headerlink" title="踩坑二："></a>踩坑二：</h4><p>我简单安装了 zsh, vim 等工具后， 就去吃饭了， 也正常关机了。  但是第二次开机， 就有了如下报错， 进入不到系统了。<br>显示如下 </p>
+<p><img src="/images/2025_0702/img_8.png" alt="img_11"></p>
+<h4 id="下载官方镜像"><a href="#下载官方镜像" class="headerlink" title="下载官方镜像"></a>下载官方镜像</h4><p><a target="_blank" rel="noopener" href="https://docs.radxa.com/rock5/rock5b/download">https://docs.radxa.com/rock5/rock5b/download</a></p>
+<p>ROCK 5B+ 系统镜像: rock-5b-plus_bookworm_kde_b2</p>
+<p>然后正常玩了一个下午 开启了 openssh 可以远程连接。 发现又突然黑屏了。然后启动就启动不了了， 并且期间还重启了一次。坑爹啊。</p>
+<h4 id="下载armbian-试试。"><a href="#下载armbian-试试。" class="headerlink" title="下载armbian 试试。"></a>下载armbian 试试。</h4><p><a target="_blank" rel="noopener" href="https://www.armbian.com/rock-5b-plus/">https://www.armbian.com/rock-5b-plus/</a><br><a target="_blank" rel="noopener" href="https://www.armbian.com/rock-5b/">https://www.armbian.com/rock-5b/</a></p>
+<p>重装了一下，是个server版系统， 用了一下，还不错，好像还挺稳定的。开启了 ssh-server, 远程连接。 就是感觉cpu 和主板 有点发烫.</p>
+<p>然后我按照 radxa 官方的教程 执行语句将风扇调至最高档</p>
+<p><a target="_blank" rel="noopener" href="https://docs.radxa.com/rock5/rock5b/getting-started/interface-usage/fan">https://docs.radxa.com/rock5/rock5b/getting-started/interface-usage/fan</a></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo cp /sys/class/thermal/cooling_device5/max_state /sys/class/thermal/cooling_device5/cur_state</span><br></pre></td></tr></table></figure>
+
+
+<p>但是只转了两三秒就停了。</p>
+<p>于是问了下 chatgpt, 应该是控温策略导致的。温度还没有达到60度。</p>
+<p>但是我还是觉得有点烫。于是写了个bash 脚本</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/bash</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">临时全速风扇脚本</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">持续将风扇设置为最大状态，直到手动停止</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">适用于 /sys/class/thermal/cooling_device4</span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">获取最大风扇状态</span></span><br><span class="line">MAX_STATE=$(cat /sys/class/thermal/cooling_device5/max_state)</span><br><span class="line"></span><br><span class="line">echo &quot;最大风扇状态: $MAX_STATE&quot;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">持续循环设置风扇</span></span><br><span class="line">while true; do</span><br><span class="line">    # 写入当前状态</span><br><span class="line">    echo $MAX_STATE | sudo tee /sys/class/thermal/cooling_device5/cur_state &gt; /dev/null</span><br><span class="line"></span><br><span class="line">    # 可选：打印当前 CPU 温度</span><br><span class="line">    TEMP=$(cat /sys/class/thermal/thermal_zone0/temp)</span><br><span class="line">    echo &quot;CPU 温度: $((TEMP/1000))°C  | 风扇状态: $MAX_STATE&quot;</span><br><span class="line"></span><br><span class="line">    # 每秒刷新一次</span><br><span class="line">    sleep 1</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+
+
+<p><img src="/images/2025_0702/img_9.png" alt="img_11"></p>
+<p>可以看到 温度确实降下来了， 于是我关闭了 bash 脚本， 风扇依然再转。 很奇怪. 转吧 总比不转好.</p>
+<p>ok 看看系统使用</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">df -lh</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/2025_0702/img_10.png" alt="img_11"></p>
+<p>20250928<br>烧录系统后，SD卡内存变小的解决<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/u010994456/article/details/117119317?spm=1001.2101.3001.6650.15&utm_medium=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~Rate-15-117119317-blog-145263778.235%5Ev43%5Epc_blog_bottom_relevance_base5&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~Rate-15-117119317-blog-145263778.235%5Ev43%5Epc_blog_bottom_relevance_base5&utm_relevant_index=22">https://blog.csdn.net/u010994456/article/details/117119317?spm=1001.2101.3001.6650.15&amp;utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-15-117119317-blog-145263778.235%5Ev43%5Epc_blog_bottom_relevance_base5&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-15-117119317-blog-145263778.235%5Ev43%5Epc_blog_bottom_relevance_base5&amp;utm_relevant_index=22</a></p>
+<p>20250929<br>通过ssh 远程链接， 刷的radxa 的官方镜像, 系统长时间不用<br>会返回<br>Broadcast message from gdm@rockpi-4cplus on tty1 (Sun 2025-01-19 10:19:10 UTC):<br>The system will suspend now!</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://example.com/2025/07/02/ubuntu-redroid-%E8%B8%A9%E5%9D%91%E6%97%A5%E8%AE%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1127,7 +1612,8 @@
       
         
           
-            <h4 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h4><p><img src="/images/2025_0506/img_2.png" alt="img_2"></p>
+            <h4 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h4><p>我自己写了一个 aes apk,  文末提供下载链接.<br>ida 打开看看.</p>
+<p><img src="/images/2025_0506/img_2.png" alt="img_2"></p>
 <p>可以看到符号并没有抹除.</p>
 <p>我们进入 AES_ECB_encrypt 看看</p>
 <p><img src="/images/2025_0506/img_3.png" alt="img_3"></p>
@@ -1535,466 +2021,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/04/29/sha256-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="mgaic">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2025/04/29/sha256-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" itemprop="url">sha256 学习笔记</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2025-04-29T11:32:28+08:00">
-                2025-04-29
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%80%86%E5%90%91/" itemprop="url" rel="index">
-                    <span itemprop="name">逆向</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h4 id="step1-常量初始化"><a href="#step1-常量初始化" class="headerlink" title="step1 常量初始化"></a>step1 常量初始化</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">h0 := 0x6a09e667</span><br><span class="line">h1 := 0xbb67ae85</span><br><span class="line">h2 := 0x3c6ef372</span><br><span class="line">h3 := 0xa54ff53a</span><br><span class="line">h4 := 0x510e527f</span><br><span class="line">h5 := 0x9b05688c</span><br><span class="line">h6 := 0x1f83d9ab</span><br><span class="line">h7 := 0x5be0cd19</span><br></pre></td></tr></table></figure>
-<p>这八个初始向量怎么来的?<br>答曰: 前八个质数取根号后的值 取小数部分, 然后乘以2的32次方, 对结果取整 就是初始向量.</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">import math</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">第一个8个素数</span></span><br><span class="line">primes = [2, 3, 5, 7, 11, 13, 17, 19]</span><br><span class="line"></span><br><span class="line">H = []</span><br><span class="line"></span><br><span class="line">for p in primes:</span><br><span class="line">    sqrt_p = math.sqrt(p)</span><br><span class="line">    sqrt_p = p ** (1/2)</span><br><span class="line">    frac_part = sqrt_p - int(sqrt_p)  # 提取小数部分</span><br><span class="line">    value = int(frac_part * (2**32))  # 小数部分 * 2^32，再取整</span><br><span class="line">    H.append(value)</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">打印结果</span></span><br><span class="line">for h in H:</span><br><span class="line">    print(hex(h))</span><br></pre></td></tr></table></figure>
-
-<h4 id="step2-常量64位-K表"><a href="#step2-常量64位-K表" class="headerlink" title="step2 常量64位 K表"></a>step2 常量64位 K表</h4><p>如果生成的？<br>答曰： 前64个质数，取立方根, 跟8位常量的生成算法一样， 只是取的是立方根, 下面给出代码</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">import math</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">先生成前64个素数</span></span><br><span class="line">def get_first_n_primes(n):</span><br><span class="line">    primes = []</span><br><span class="line">    candidate = 2</span><br><span class="line">    while len(primes) &lt; n:</span><br><span class="line">        is_prime = True</span><br><span class="line">        for p in primes:</span><br><span class="line">            if p * p &gt; candidate:</span><br><span class="line">                break</span><br><span class="line">            if candidate % p == 0:</span><br><span class="line">                is_prime = False</span><br><span class="line">                break</span><br><span class="line">        if is_prime:</span><br><span class="line">            primes.append(candidate)</span><br><span class="line">        candidate += 1</span><br><span class="line">    return primes</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">计算K表</span></span><br><span class="line">def generate_sha256_k():</span><br><span class="line">    primes = get_first_n_primes(64)</span><br><span class="line">    K = []</span><br><span class="line">    for p in primes:</span><br><span class="line">        cbrt = p ** (1/3)</span><br><span class="line">        frac_part = cbrt - int(cbrt)</span><br><span class="line">        value = int(frac_part * (2**32))</span><br><span class="line">        K.append(value)</span><br><span class="line">    return K</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">打印结果</span></span><br><span class="line">K = generate_sha256_k()</span><br><span class="line">for i, k in enumerate(K):</span><br><span class="line">    print(f&quot;K[&#123;i&#125;] = 0x&#123;k:08x&#125;&quot;)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h4 id="综上，这些常量也只是根据质数生成的-换一批质数-获取随机常量就可以达到魔改的目的"><a href="#综上，这些常量也只是根据质数生成的-换一批质数-获取随机常量就可以达到魔改的目的" class="headerlink" title="综上，这些常量也只是根据质数生成的, 换一批质数, 获取随机常量就可以达到魔改的目的"></a>综上，这些常量也只是根据质数生成的, 换一批质数, 获取随机常量就可以达到魔改的目的</h4><h4 id="step-3-填充"><a href="#step-3-填充" class="headerlink" title="step 3 填充"></a>step 3 填充</h4><p>假设有数据 ‘abc’, 用16进制表示 是</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">61626300 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span><br><span class="line">00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span><br></pre></td></tr></table></figure>
-
-<p>0x61 是 ‘a’的 ascii 码<br>0x62 是 ‘b’的 ascii 码<br>0x63 是 ‘c’的 ascii 码</p>
-<p>将数据尾部添加一个 bit’1’, 然后再添加若干个 bit’0’, 凑够 448 位<br>448 + 64 &#x3D; 512, 为什么要凑 448 因为还有 64位置是用来记录数据的长度的。 448位记录是的数据 64位记录的是长度</p>
-<p>这样数据在内存中就变成了如下分布</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">61626380 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span><br><span class="line">00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000018</span><br></pre></td></tr></table></figure>
-
-<p>0x80 是 10000000的hex表示.<br>0x18 对应十进制是 24, 正好就是 abc 所占的bit</p>
-<h4 id="计算-生成-w0-w63"><a href="#计算-生成-w0-w63" class="headerlink" title="计算, 生成 w0-w63"></a>计算, 生成 w0-w63</h4><p>w0-w15 就是原来的数据.</p>
-<p>w16-w63 根据如下算法生成</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line">def _sigma0(num: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    num = (_rotate_right(num, 7) ^</span><br><span class="line">           _rotate_right(num, 18) ^</span><br><span class="line">           (num &gt;&gt; 3))</span><br><span class="line">    return num</span><br><span class="line"></span><br><span class="line">def _sigma1(num: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    num = (_rotate_right(num, 17) ^</span><br><span class="line">           _rotate_right(num, 19) ^</span><br><span class="line">           (num &gt;&gt; 10))</span><br><span class="line">    return num</span><br><span class="line"></span><br><span class="line">def _capsigma0(num: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    num = (_rotate_right(num, 2) ^</span><br><span class="line">           _rotate_right(num, 13) ^</span><br><span class="line">           _rotate_right(num, 22))</span><br><span class="line">    return num</span><br><span class="line"></span><br><span class="line">def _capsigma1(num: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    num = (_rotate_right(num, 6) ^</span><br><span class="line">           _rotate_right(num, 11) ^</span><br><span class="line">           _rotate_right(num, 25))</span><br><span class="line">    return num</span><br><span class="line"></span><br><span class="line">def _ch(x: int, y: int, z: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    return (x &amp; y) ^ (~x &amp; z)</span><br><span class="line"></span><br><span class="line">def _maj(x: int, y: int, z: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    return (x &amp; y) ^ (x &amp; z) ^ (y &amp; z)</span><br><span class="line"></span><br><span class="line">def _rotate_right(num: int, shift: int, size: int = 32):</span><br><span class="line">    &quot;&quot;&quot;Rotate an integer right.&quot;&quot;&quot;</span><br><span class="line">    return (num &gt;&gt; shift) | (num &lt;&lt; size - shift)</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">W = []</span><br><span class="line">for t in range(0, 64):</span><br><span class="line">    if t &lt;= 15:</span><br><span class="line">        # adds the t&#x27;th 32 bit word of the block,</span><br><span class="line">        # starting from leftmost word</span><br><span class="line">        # 4 bytes at a time</span><br><span class="line">        W.append(bytes(message_block[t*4:(t*4)+4]))</span><br><span class="line">    else:</span><br><span class="line">        term1 = _sigma1(int.from_bytes(W[t-2], &#x27;big&#x27;))</span><br><span class="line">        term2 = int.from_bytes(W[t-7], &#x27;big&#x27;)</span><br><span class="line">        term3 = _sigma0(int.from_bytes(W[t-15], &#x27;big&#x27;))</span><br><span class="line">        term4 = int.from_bytes(W[t-16], &#x27;big&#x27;)</span><br><span class="line"></span><br><span class="line">        # append a 4-byte byte object</span><br><span class="line">        schedule = ((term1 + term2 + term3 + term4) % 2**32).to_bytes(4, &#x27;big&#x27;)</span><br><span class="line">        W.append(schedule)</span><br><span class="line"></span><br><span class="line">assert len(W) == 64</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h4 id="接下给出sha256-完整代码"><a href="#接下给出sha256-完整代码" class="headerlink" title="接下给出sha256 完整代码"></a>接下给出sha256 完整代码</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br></pre></td><td class="code"><pre><span class="line">&quot;&quot;&quot;This Python module is an implementation of the SHA-256 algorithm.</span><br><span class="line">From https://github.com/keanemind/Python-SHA-256&quot;&quot;&quot;</span><br><span class="line"></span><br><span class="line">K = [</span><br><span class="line">    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,</span><br><span class="line">    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,</span><br><span class="line">    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,</span><br><span class="line">    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,</span><br><span class="line">    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,</span><br><span class="line">    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,</span><br><span class="line">    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,</span><br><span class="line">    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">def generate_hash(message: bytearray) -&gt; bytearray:</span><br><span class="line">    &quot;&quot;&quot;Return a SHA-256 hash from the message passed.</span><br><span class="line">    The argument should be a bytes, bytearray, or</span><br><span class="line">    string object.&quot;&quot;&quot;</span><br><span class="line"></span><br><span class="line">    if isinstance(message, str):</span><br><span class="line">        message = bytearray(message, &#x27;ascii&#x27;)</span><br><span class="line">    elif isinstance(message, bytes):</span><br><span class="line">        message = bytearray(message)</span><br><span class="line">    elif not isinstance(message, bytearray):</span><br><span class="line">        raise TypeError</span><br><span class="line"></span><br><span class="line">    # Padding</span><br><span class="line">    length = len(message) * 8 # len(message) is number of BYTES!!!</span><br><span class="line">    message.append(0x80)</span><br><span class="line">    while (len(message) * 8 + 64) % 512 != 0:</span><br><span class="line">        message.append(0x00)</span><br><span class="line"></span><br><span class="line">    message += length.to_bytes(8, &#x27;big&#x27;) # pad to 8 bytes or 64 bits</span><br><span class="line"></span><br><span class="line">    assert (len(message) * 8) % 512 == 0, &quot;Padding did not complete properly!&quot;</span><br><span class="line"></span><br><span class="line">    # Parsing</span><br><span class="line">    blocks = [] # contains 512-bit chunks of message</span><br><span class="line">    for i in range(0, len(message), 64): # 64 bytes is 512 bits</span><br><span class="line">        blocks.append(message[i:i+64])</span><br><span class="line"></span><br><span class="line">    # Setting Initial Hash Value</span><br><span class="line">    h0 = 0x6a09e667</span><br><span class="line">    h1 = 0xbb67ae85</span><br><span class="line">    h2 = 0x3c6ef372</span><br><span class="line">    h3 = 0xa54ff53a</span><br><span class="line">    h5 = 0x9b05688c</span><br><span class="line">    h4 = 0x510e527f</span><br><span class="line">    h6 = 0x1f83d9ab</span><br><span class="line">    h7 = 0x5be0cd19</span><br><span class="line"></span><br><span class="line">    # SHA-256 Hash Computation</span><br><span class="line">    for message_block in blocks:</span><br><span class="line">        # Prepare message schedule</span><br><span class="line">        message_schedule = []</span><br><span class="line">        for t in range(0, 64):</span><br><span class="line">            if t &lt;= 15:</span><br><span class="line">                # adds the t&#x27;th 32 bit word of the block,</span><br><span class="line">                # starting from leftmost word</span><br><span class="line">                # 4 bytes at a time</span><br><span class="line">                message_schedule.append(bytes(message_block[t*4:(t*4)+4]))</span><br><span class="line">            else:</span><br><span class="line">                term1 = _sigma1(int.from_bytes(message_schedule[t-2], &#x27;big&#x27;))</span><br><span class="line">                term2 = int.from_bytes(message_schedule[t-7], &#x27;big&#x27;)</span><br><span class="line">                term3 = _sigma0(int.from_bytes(message_schedule[t-15], &#x27;big&#x27;))</span><br><span class="line">                term4 = int.from_bytes(message_schedule[t-16], &#x27;big&#x27;)</span><br><span class="line"></span><br><span class="line">                # append a 4-byte byte object</span><br><span class="line">                schedule = ((term1 + term2 + term3 + term4) % 2**32).to_bytes(4, &#x27;big&#x27;)</span><br><span class="line">                message_schedule.append(schedule)</span><br><span class="line"></span><br><span class="line">        assert len(message_schedule) == 64</span><br><span class="line"></span><br><span class="line">        # Initialize working variables</span><br><span class="line">        a = h0</span><br><span class="line">        b = h1</span><br><span class="line">        c = h2</span><br><span class="line">        d = h3</span><br><span class="line">        e = h4</span><br><span class="line">        f = h5</span><br><span class="line">        g = h6</span><br><span class="line">        h = h7</span><br><span class="line"></span><br><span class="line">        # Iterate for t=0 to 63</span><br><span class="line">        for t in range(64):</span><br><span class="line">            t1 = ((h + _capsigma1(e) + _ch(e, f, g) + K[t] +</span><br><span class="line">                   int.from_bytes(message_schedule[t], &#x27;big&#x27;)) % 2**32)</span><br><span class="line"></span><br><span class="line">            t2 = (_capsigma0(a) + _maj(a, b, c)) % 2**32</span><br><span class="line"></span><br><span class="line">            h = g</span><br><span class="line">            g = f</span><br><span class="line">            f = e</span><br><span class="line">            e = (d + t1) % 2**32</span><br><span class="line">            d = c</span><br><span class="line">            c = b</span><br><span class="line">            b = a</span><br><span class="line">            a = (t1 + t2) % 2**32</span><br><span class="line"></span><br><span class="line">        # Compute intermediate hash value</span><br><span class="line">        h0 = (h0 + a) % 2**32</span><br><span class="line">        h1 = (h1 + b) % 2**32</span><br><span class="line">        h2 = (h2 + c) % 2**32</span><br><span class="line">        h3 = (h3 + d) % 2**32</span><br><span class="line">        h4 = (h4 + e) % 2**32</span><br><span class="line">        h5 = (h5 + f) % 2**32</span><br><span class="line">        h6 = (h6 + g) % 2**32</span><br><span class="line">        h7 = (h7 + h) % 2**32</span><br><span class="line"></span><br><span class="line">    return ((h0).to_bytes(4, &#x27;big&#x27;) + (h1).to_bytes(4, &#x27;big&#x27;) +</span><br><span class="line">            (h2).to_bytes(4, &#x27;big&#x27;) + (h3).to_bytes(4, &#x27;big&#x27;) +</span><br><span class="line">            (h4).to_bytes(4, &#x27;big&#x27;) + (h5).to_bytes(4, &#x27;big&#x27;) +</span><br><span class="line">            (h6).to_bytes(4, &#x27;big&#x27;) + (h7).to_bytes(4, &#x27;big&#x27;))</span><br><span class="line"></span><br><span class="line">def _sigma0(num: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    num = (_rotate_right(num, 7) ^</span><br><span class="line">           _rotate_right(num, 18) ^</span><br><span class="line">           (num &gt;&gt; 3))</span><br><span class="line">    return num</span><br><span class="line"></span><br><span class="line">def _sigma1(num: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    num = (_rotate_right(num, 17) ^</span><br><span class="line">           _rotate_right(num, 19) ^</span><br><span class="line">           (num &gt;&gt; 10))</span><br><span class="line">    return num</span><br><span class="line"></span><br><span class="line">def _capsigma0(num: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    num = (_rotate_right(num, 2) ^</span><br><span class="line">           _rotate_right(num, 13) ^</span><br><span class="line">           _rotate_right(num, 22))</span><br><span class="line">    return num</span><br><span class="line"></span><br><span class="line">def _capsigma1(num: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    num = (_rotate_right(num, 6) ^</span><br><span class="line">           _rotate_right(num, 11) ^</span><br><span class="line">           _rotate_right(num, 25))</span><br><span class="line">    return num</span><br><span class="line"></span><br><span class="line">def _ch(x: int, y: int, z: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    return (x &amp; y) ^ (~x &amp; z)</span><br><span class="line"></span><br><span class="line">def _maj(x: int, y: int, z: int):</span><br><span class="line">    &quot;&quot;&quot;As defined in the specification.&quot;&quot;&quot;</span><br><span class="line">    return (x &amp; y) ^ (x &amp; z) ^ (y &amp; z)</span><br><span class="line"></span><br><span class="line">def _rotate_right(num: int, shift: int, size: int = 32):</span><br><span class="line">    &quot;&quot;&quot;Rotate an integer right.&quot;&quot;&quot;</span><br><span class="line">    return (num &gt;&gt; shift) | (num &lt;&lt; size - shift)</span><br><span class="line"></span><br><span class="line">if __name__ == &quot;__main__&quot;:</span><br><span class="line">    print(generate_hash(&quot;Hello&quot;).hex())</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/04/15/hexo-%E6%81%A2%E5%A4%8D%E8%AE%B0%E5%BD%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="mgaic">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2025/04/15/hexo-%E6%81%A2%E5%A4%8D%E8%AE%B0%E5%BD%95/" itemprop="url">hexo 恢复记录</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2025-04-15T16:29:11+08:00">
-                2025-04-15
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h4 id="1-安装-nvm-类似于python的-conda"><a href="#1-安装-nvm-类似于python的-conda" class="headerlink" title="1.安装 nvm (类似于python的 conda)"></a>1.安装 nvm (类似于python的 conda)</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="2-安装-nodejs"><a href="#2-安装-nodejs" class="headerlink" title="2. 安装 nodejs"></a>2. 安装 nodejs</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ nvm install 18</span><br><span class="line">$ nvm use 18</span><br></pre></td></tr></table></figure>
-
-<h4 id="3-clone-项目"><a href="#3-clone-项目" class="headerlink" title="3. clone 项目"></a>3. clone 项目</h4><p>由于之前deploy 过项目， 直接克隆就好</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">git <span class="built_in">clone</span> git@github.com:xxxxx/hexo_blog.git</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="4-编译"><a href="#4-编译" class="headerlink" title="4. 编译"></a>4. 编译</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">cd</span> hexo_blog</span> </span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">npm install</span> </span><br></pre></td></tr></table></figure>
-
-<h4 id="5-下载-NexT-Mist-v5-1-3-主题"><a href="#5-下载-NexT-Mist-v5-1-3-主题" class="headerlink" title="5. 下载 NexT.Mist v5.1.3 主题"></a>5. 下载 NexT.Mist v5.1.3 主题</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">git <span class="built_in">clone</span> -b v5.1.3 https://github.com/iissnan/hexo-theme-next.git themes/next</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="6-修改翻页标签乱码"><a href="#6-修改翻页标签乱码" class="headerlink" title="6. 修改翻页标签乱码"></a>6. 修改翻页标签乱码</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">参考  https://blog.csdn.net/qq_36852780/article/details/104897491</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="7-主题设置-防止404-或者页面跳转错误问题"><a href="#7-主题设置-防止404-或者页面跳转错误问题" class="headerlink" title="7.主题设置, 防止404 或者页面跳转错误问题"></a>7.主题设置, 防止404 或者页面跳转错误问题</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">修改主题包下的 _config.yml</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Schemes</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">scheme: Muse</span></span><br><span class="line">scheme: Mist</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">scheme: Pisces</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">scheme: Gemini</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">修改主题包下的 _config.yml</span></span><br><span class="line">menu:</span><br><span class="line">  home: /|| home</span><br><span class="line">  tags: /tags/|| tags</span><br><span class="line">  categories: /categories/|| th</span><br><span class="line">  archives: /archives/|| archive</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-<h4 id="8-跑起来"><a href="#8-跑起来" class="headerlink" title="8. 跑起来"></a>8. 跑起来</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">hexo clean &amp;&amp; hexo g &amp;&amp; hexo s</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="9-发布"><a href="#9-发布" class="headerlink" title="9. 发布"></a>9. 发布</h4><p>需要配置git仓库, 参考 <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment">https://hexo.io/docs/one-command-deployment</a></p>
-<p>然后执行</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">hexo clean &amp;&amp; hexo deploy</span></span><br></pre></td></tr></table></figure>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/09/11/frida-memery-scan/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="mgaic">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2024/09/11/frida-memery-scan/" itemprop="url">frida内存扫描以及关键代码定位.</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2024-09-11T10:38:14+08:00">
-                2024-09-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%80%86%E5%90%91/" itemprop="url" rel="index">
-                    <span itemprop="name">逆向</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>frida 发布了新特性, 支持硬件断点, 能更好的对内存区域进行扫描, 并快速定位出哪段代码读写了这片内存区域<br>感兴趣的可以看下<br>贴上地址 <a target="_blank" rel="noopener" href="https://frida.re/news/">https://frida.re/news/</a></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2024/09/11/frida-memery-scan/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">&gt;</a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/">&gt;</a>
   </nav>
 
 
@@ -2040,7 +2071,7 @@
               
                 <a href="/archives/%7C%7C%20archive">
               
-                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-count">22</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2099,7 +2130,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2025</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2026</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>

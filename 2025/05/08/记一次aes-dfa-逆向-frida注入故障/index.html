@@ -81,12 +81,12 @@
 
 
 
-<meta name="description" content="分析 可以看到符号并没有抹除. 我们进入 AES_ECB_encrypt 看看  可以看到 sub_20B14 被调用了三次， 这显然是 轮密钥加 的操作.第一轮 与 key0 做异或第2到10轮 与 key1-9 做异或第11轮 与 key10 做异或 进入到  sub_20BAC, 看看实现  再看看  byte_16CD5  这明显是一个查表的操作, 而且 0x63, 0x7C, 0x77,">
+<meta name="description" content="分析我自己写了一个 aes apk,  文末提供下载链接.ida 打开看看.  可以看到符号并没有抹除. 我们进入 AES_ECB_encrypt 看看  可以看到 sub_20B14 被调用了三次， 这显然是 轮密钥加 的操作.第一轮 与 key0 做异或第2到10轮 与 key1-9 做异或第11轮 与 key10 做异或 进入到  sub_20BAC, 看看实现  再看看  byte_16C">
 <meta property="og:type" content="article">
 <meta property="og:title" content="记一次aes dfa 逆向,frida 注入故障">
 <meta property="og:url" content="http://example.com/2025/05/08/%E8%AE%B0%E4%B8%80%E6%AC%A1aes-dfa-%E9%80%86%E5%90%91-frida%E6%B3%A8%E5%85%A5%E6%95%85%E9%9A%9C/index.html">
 <meta property="og:site_name" content="mgaic">
-<meta property="og:description" content="分析 可以看到符号并没有抹除. 我们进入 AES_ECB_encrypt 看看  可以看到 sub_20B14 被调用了三次， 这显然是 轮密钥加 的操作.第一轮 与 key0 做异或第2到10轮 与 key1-9 做异或第11轮 与 key10 做异或 进入到  sub_20BAC, 看看实现  再看看  byte_16CD5  这明显是一个查表的操作, 而且 0x63, 0x7C, 0x77,">
+<meta property="og:description" content="分析我自己写了一个 aes apk,  文末提供下载链接.ida 打开看看.  可以看到符号并没有抹除. 我们进入 AES_ECB_encrypt 看看  可以看到 sub_20B14 被调用了三次， 这显然是 轮密钥加 的操作.第一轮 与 key0 做异或第2到10轮 与 key1-9 做异或第11轮 与 key10 做异或 进入到  sub_20BAC, 看看实现  再看看  byte_16C">
 <meta property="og:locale">
 <meta property="og:image" content="http://example.com/images/2025_0506/img_2.png">
 <meta property="og:image" content="http://example.com/images/2025_0506/img_3.png">
@@ -99,7 +99,7 @@
 <meta property="og:image" content="http://example.com/images/2025_0506/img_10.png">
 <meta property="og:image" content="http://example.com/images/2025_0506/img_11.png">
 <meta property="article:published_time" content="2025-05-08T03:54:40.000Z">
-<meta property="article:modified_time" content="2025-05-08T08:49:32.639Z">
+<meta property="article:modified_time" content="2026-02-24T07:59:56.265Z">
 <meta property="article:author" content="chilly">
 <meta property="article:tag" content="Python, 爬虫, 逆向">
 <meta name="twitter:card" content="summary">
@@ -355,7 +355,8 @@
       
 
       
-        <h4 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h4><p><img src="/images/2025_0506/img_2.png" alt="img_2"></p>
+        <h4 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h4><p>我自己写了一个 aes apk,  文末提供下载链接.<br>ida 打开看看.</p>
+<p><img src="/images/2025_0506/img_2.png" alt="img_2"></p>
 <p>可以看到符号并没有抹除.</p>
 <p>我们进入 AES_ECB_encrypt 看看</p>
 <p><img src="/images/2025_0506/img_3.png" alt="img_3"></p>
@@ -524,7 +525,7 @@
               
                 <a href="/archives/%7C%7C%20archive">
               
-                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-count">22</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -599,7 +600,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2025</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2026</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
