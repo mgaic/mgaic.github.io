@@ -95,7 +95,7 @@
 <meta property="og:image" content="http://example.com/images/20260224/img_6.png">
 <meta property="og:image" content="http://example.com/images/20260224/img_7.png">
 <meta property="article:published_time" content="2026-02-24T08:07:41.000Z">
-<meta property="article:modified_time" content="2026-02-24T09:07:17.466Z">
+<meta property="article:modified_time" content="2026-02-24T10:33:45.600Z">
 <meta property="article:author" content="chilly">
 <meta property="article:tag" content="Python, 爬虫, 逆向">
 <meta name="twitter:card" content="summary">
@@ -329,7 +329,7 @@
       
 
       
-        <p>2026 春节回老家了一趟， 节前跟高中同学在一张床上深入交流了一下, 还跟另外一个在非洲肯尼亚的同学打了个视频, 他们老板在那边装了星lian, 按之前的网速是没法打微信视频的. 他也算搭上老板的顺风车了, 并且还各种摸鱼，<br>北京时间是晚上十点， 他们那边大概是下午两点的样子， 边上班边跟我们视频，他做的是桥梁设计，他开了 chatgpt pro 的会员，一个月大概1000多，让gpt 生成一个 50多页的pdf, 大概已完成了 60%-80，然后再反复迭代优化提示词，听他说能否节约一般的工作时间.</p>
+        <p>2026 春节回老家了一趟， 节前跟高中同学在一张床上深入交流了一下, 还跟另外一个在非洲肯尼亚的同学打了个视频, 他们老板在那边装了星lian, 按之前的网速是没法打微信视频的. 他也算搭上老板的顺风车了, 并且还各种摸鱼，<br>北京时间是晚上十点， 他们那边大概是下午两点的样子， 边上班边跟我们视频，他做的是桥梁设计，他开了 chatgpt pro 的会员，一个月大概1000多，让gpt 生成一个 50多页的pdf, 大概已完成了 60%-80%，然后再反复迭代优化提示词，听他说能否节约一半的工作时间.</p>
 <p>好了说正事， 就是这个深入交流的同学， 他家新盖了房子, 买了新的电视， 需要投屏. 有一款app 强制更新，让我帮忙看看， 于是有了这篇文章.</p>
 <p>打开app, 申请完权限后， 直接进入到了自动更新. </p>
 <p><img src="/images/20260224/img_2.png" alt="img_2.png"></p>
@@ -339,10 +339,10 @@
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Java.perform(function() &#123;</span><br><span class="line">    let MainActivity = Java.use(&quot;com.cctv.tv.mvp.ui.activity.MainActivity&quot;);</span><br><span class="line">    MainActivity[&quot;a&quot;].overload(&#x27;boolean&#x27;, &#x27;boolean&#x27;).implementation = function (z, z2) &#123;</span><br><span class="line">        console.log(`MainActivity.a is called: z=$&#123;z&#125;, z2=$&#123;z2&#125;`);</span><br><span class="line">        this[&quot;a&quot;](z, z2);</span><br><span class="line">        // this[&quot;a&quot;](false, false);</span><br><span class="line">        // return this[&quot;a&quot;](true, false);</span><br><span class="line">        console.log(111111)</span><br><span class="line">        // return this[&quot;a&quot;](false, true);</span><br><span class="line">        // return this[&quot;a&quot;](false, false);</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
 <p>结果是 MainActivity.a is called: z&#x3D;true, z2&#x3D;true<br>我们使用 frida 改改参数看看能否绕过更新, 亲测不管怎么组合， 都不能绕过更新。</p>
-<p>于是问 chatgpt 如何绕过强制更新, gpt 说某些强制更新是通过服务端下发的数据来判断是否本地需要更新的， 于是试试看 charles 抓包<br>看 charles 能否 patch 掉自动更新.</p>
+<p>于是问 chatgpt 如何绕过强制更新, gpt 说可以通过拦截网络请求来实现绕过， 于是试试看 charles 抓包<br>看 charles 能否 patch 掉自动更新.</p>
 <p><img src="/images/20260224/img.png" alt="img.png"></p>
 <p>直接 block List, 直接禁用该请求, 发现app 强制更新不弹出了. 直接成功.<br>还有一个办法， compose 这个请求，将返回值中的 versionCode 和 versionName 置为空 也可以跳过强制更新.</p>
-<p>到此处已经有可用方案了， 就是通过 charles patch response.  但我同学不懂技术，他要装charles, 并且还要设置证书， 我想着有没有什么apk, 可以拦截 url, 于是尝试了 netguard  工具, 好像无法像charles 一样直接拦截, 我想如果有的话，应该就是小黄鸟这种或者如果设备够新的话，支持ebpf 特性，应该可以实现.</p>
+<p>到此处已经有可用方案了， 就是通过 charles patch response.  但我同学不懂技术，他要装charles, 并且还要设置证书， 我想着有没有什么apk, 可以拦截 url, 于是尝试了 netguard  工具, 好像无法像charles 一样直接拦截, 我想如果有的话，应该就是小黄鸟. 或者如果设备够新的话，支持ebpf 特性，应该可以实现.</p>
 <p>这里我没有试小黄鸟了. 我想重打包一下 apk, 这样，我这个不懂技术但深入交流过的同学就可以傻瓜式的使用了.</p>
 <p>于是打开 AndroidManifest.xml, 找到 启动 activity.  </p>
 <p><img src="/images/20260224/img_5.png" alt="img.png"></p>
@@ -375,7 +375,7 @@
 <ol>
 <li>这个apk 33M, 比较小, 强制更新的逻辑在 MainActivity, 将这个类的代码直接扔给gpt, 直接给出了结果，运气比较好.</li>
 <li>巩固了如何对 apk 进行反编译, 回编, 签名.  </li>
-<li>改 smali 代码是 gpt 帮忙生成的. 如果自己改, 可能会面临闪退， 并且你不知道是不是由于有签名验证造成的。 不过这个应用是没有签名检测的. 如果想验证是不是smali 语法导致的闪退也很简单, 添加一个无关紧要的 smali 代码，例如打个日志，或者print hello 等，就是特别简单不会出错的代码， 然后再重打包，如果崩溃了就是有apk签名检测. 如果没有崩，说明就是smali 语法问题.</li>
+<li>修改 smali 的代码是 gpt 帮我们生成的. 如果自己改, 可能会面临闪退， 并且你不知道是不是由于签名验证造成的。 如果想验证是不是smali 语法导致的闪退也很简单, 添加一个无关紧要的 smali 代码，例如打个日志，print hello 等，就是特别简单, 不会出错的代码， 然后再重打包，如果崩溃了就是有apk签名检测. 如果没有崩，说明就是smali 语法问题. 寄存器用前没有申请等等.</li>
 </ol>
 
       
@@ -410,6 +410,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2026/02/25/chomper%20%E8%BF%98%E5%8E%9F%20ios%20%E6%9F%90%E7%A4%BE%E5%8C%BAapp%20%E7%AE%97%E6%B3%95/" rel="prev" title="chomper 还原 ios 某社区app 算法">
+                chomper 还原 ios 某社区app 算法 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -475,7 +479,7 @@
               
                 <a href="/archives/%7C%7C%20archive">
               
-                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-count">27</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

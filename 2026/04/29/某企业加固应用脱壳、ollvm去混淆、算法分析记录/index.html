@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="mgaic" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="应用某咖啡  抓包新买的pixel 6, 用公司网络， 设置代理后，charles 没有任务反应, 就好像代理每设置成功一样。 但是用自己的另外一个手机开热点，可以抓到请求.问题已解决：  在连接wifi 的时候设置使用设备 MAC， 不要随机mac 就可以使用公司网络进行抓包了. 反编译.打开 发现用了 某数字厂商的壳. 于是尝试用 frida 脱壳. 结果发现这个apk 有anti-frida">
+<meta property="og:type" content="article">
+<meta property="og:title" content="某企业加固应用脱壳、ollvm去混淆、算法分析记录">
+<meta property="og:url" content="http://example.com/2026/04/29/%E6%9F%90%E4%BC%81%E4%B8%9A%E5%8A%A0%E5%9B%BA%E5%BA%94%E7%94%A8%E8%84%B1%E5%A3%B3%E3%80%81ollvm%E5%8E%BB%E6%B7%B7%E6%B7%86%E3%80%81%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90%E8%AE%B0%E5%BD%95/index.html">
+<meta property="og:site_name" content="mgaic">
+<meta property="og:description" content="应用某咖啡  抓包新买的pixel 6, 用公司网络， 设置代理后，charles 没有任务反应, 就好像代理每设置成功一样。 但是用自己的另外一个手机开热点，可以抓到请求.问题已解决：  在连接wifi 的时候设置使用设备 MAC， 不要随机mac 就可以使用公司网络进行抓包了. 反编译.打开 发现用了 某数字厂商的壳. 于是尝试用 frida 脱壳. 结果发现这个apk 有anti-frida">
+<meta property="og:locale">
+<meta property="og:image" content="http://example.com/images/20260429/img.png">
+<meta property="og:image" content="http://example.com/images/20260429/img_1.png">
+<meta property="og:image" content="http://example.com/images/20260429/img_3.png">
+<meta property="og:image" content="http://example.com/images/20260429/img_4.png">
+<meta property="article:published_time" content="2026-04-29T12:10:01.000Z">
+<meta property="article:modified_time" content="2026-04-29T12:49:25.483Z">
+<meta property="article:author" content="chilly">
+<meta property="article:tag" content="Python, 爬虫, 逆向">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/20260429/img.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://example.com/2026/04/29/某企业加固应用脱壳、ollvm去混淆、算法分析记录/"/>
+
+
+
+
+
+  <title>某企业加固应用脱壳、ollvm去混淆、算法分析记录 | mgaic</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">mgaic</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">爱错</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/04/29/%E6%9F%90%E4%BC%81%E4%B8%9A%E5%8A%A0%E5%9B%BA%E5%BA%94%E7%94%A8%E8%84%B1%E5%A3%B3%E3%80%81ollvm%E5%8E%BB%E6%B7%B7%E6%B7%86%E3%80%81%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90%E8%AE%B0%E5%BD%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mgaic">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">某企业加固应用脱壳、ollvm去混淆、算法分析记录</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2026-04-29T20:10:01+08:00">
+                2026-04-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h4 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h4><p>某咖啡 </p>
+<h4 id="抓包"><a href="#抓包" class="headerlink" title="抓包"></a>抓包</h4><p>新买的pixel 6, 用公司网络， 设置代理后，charles 没有任务反应, 就好像代理每设置成功一样。 但是用自己的另外一个手机开热点，可以抓到请求.<br>问题已解决：  在连接wifi 的时候设置使用设备 MAC， 不要随机mac 就可以使用公司网络进行抓包了.</p>
+<h4 id="反编译"><a href="#反编译" class="headerlink" title="反编译."></a>反编译.</h4><p>打开 发现用了 某数字厂商的壳. 于是尝试用 frida 脱壳. 结果发现这个apk 有anti-frida. 然后 hluda-server， Strong-frida 等都过不了.</p>
+<h4 id="脱壳"><a href="#脱壳" class="headerlink" title="脱壳"></a>脱壳</h4><p><a target="_blank" rel="noopener" href="https://github.com/LLeavesG/eBPFDexDumper">https://github.com/LLeavesG/eBPFDexDumper</a><br>我是用的这个基于 ebpf 的 dexDumper. 对内核有一定的要求, 本人亲测 pixel 6, 官方 rom, android 14. 可正常使用并完成脱壳.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./eBPFDexDumper dump -n com.example.app -o /sdcard/dex_out</span><br></pre></td></tr></table></figure>
+
+<p>脱壳后拖入 jadx, 发现有部分代码已经可以正常显示了. 全局搜索 sign， 定位几处可疑的地方。想要使用 frida, 但是有双进程保护，注入的时候找不到进程.<br>spawn 模式注入也会崩溃. 本人使用的是内核模块过 frida 检测. 但spawn 模式注入 不能先 注入  Java.perform。 要先加载脚本，等稳定后再把注入代码粘贴到hook 脚本中。否则一样闪退.<br>本人猜测是 init_array, 或者 jni_onload 中有 crc 检测. 但线程不但轮询检测中没有 crc 检测. 当然只能猜测.</p>
+<p>本人使用 frida 环境<br>frida-server <a target="_blank" rel="noopener" href="https://github.com/ultrafunkamsterdam/undetected-frida">https://github.com/ultrafunkamsterdam/undetected-frida</a>  undetected_f1783<br>frida&#x3D;&#x3D;17.8.3<br>frida-tools&#x3D;&#x3D;14.8.1</p>
+<p>frida hook String.getBytes 方法</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Script loaded&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">showStacks</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// return</span></span><br><span class="line">    <span class="title class_">Java</span>.<span class="title function_">perform</span>(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="title class_">Java</span>.<span class="title function_">use</span>(<span class="string">&quot;android.util.Log&quot;</span>).<span class="title function_">getStackTraceString</span>(<span class="title class_">Java</span>.<span class="title function_">use</span>(<span class="string">&quot;java.lang.Exception&quot;</span>).$new()));</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Java</span>.<span class="title function_">perform</span>(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> <span class="title class_">StringClass</span> = <span class="title class_">Java</span>.<span class="title function_">use</span>(<span class="string">&quot;java.lang.String&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="title class_">StringClass</span>.<span class="property">getBytes</span>.<span class="title function_">overload</span>(<span class="string">&#x27;java.nio.charset.Charset&#x27;</span>).<span class="property">implementation</span> = <span class="keyword">function</span> (<span class="params">charset</span>) &#123;</span><br><span class="line">        <span class="keyword">var</span> result = <span class="variable language_">this</span>.<span class="title function_">getBytes</span>(charset);</span><br><span class="line">        <span class="keyword">var</span> str = <span class="variable language_">this</span>.<span class="title function_">toString</span>();</span><br><span class="line"></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot; === getBytes(Charset) ===&quot;</span>);</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Charset:&quot;</span>, charset.<span class="title function_">toString</span>());</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;String:&quot;</span>, str);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// if (str.indexOf(&quot;mobile&quot;) !== -1 || str.indexOf(&quot;latitude&quot;) !== -1) &#123;</span></span><br><span class="line">        <span class="comment">//     printStack(&quot;getBytes(Charset)&quot;);</span></span><br><span class="line">        <span class="comment">// &#125;</span></span><br><span class="line">        <span class="title function_">showStacks</span>()</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="title class_">StringClass</span>.<span class="property">getBytes</span>.<span class="title function_">overload</span>(<span class="string">&#x27;java.lang.String&#x27;</span>).<span class="property">implementation</span> = <span class="keyword">function</span> (<span class="params">charset</span>) &#123;</span><br><span class="line">        <span class="keyword">var</span> result = <span class="variable language_">this</span>.<span class="title function_">getBytes</span>(charset);</span><br><span class="line">        <span class="keyword">var</span> str = <span class="variable language_">this</span>.<span class="title function_">toString</span>();</span><br><span class="line"></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot; === getBytes(charset) ===&quot;</span>);</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Charset:&quot;</span>, charset);</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;String:&quot;</span>, str);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// if (str.indexOf(&quot;mobile&quot;) !== -1 || str.indexOf(&quot;latitude&quot;) !== -1) &#123;</span></span><br><span class="line">        <span class="comment">//     printStack(&quot;getBytes(charset)&quot;);</span></span><br><span class="line">        <span class="comment">// &#125;</span></span><br><span class="line">        <span class="title function_">showStacks</span>()</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="title class_">StringClass</span>.<span class="property">getBytes</span>.<span class="title function_">overload</span>().<span class="property">implementation</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">var</span> result = <span class="variable language_">this</span>.<span class="title function_">getBytes</span>();</span><br><span class="line">        <span class="keyword">var</span> str = <span class="variable language_">this</span>.<span class="title function_">toString</span>();</span><br><span class="line"></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot; === getBytes() ===&quot;</span>);</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;String:&quot;</span>, str);</span><br><span class="line">        <span class="title function_">showStacks</span>()</span><br><span class="line">        <span class="comment">// 过滤你关心的字段（避免刷屏）</span></span><br><span class="line">        <span class="comment">// if (str.indexOf(&quot;mobile&quot;) !== -1 || str.indexOf(&quot;latitude&quot;) !== -1) &#123;</span></span><br><span class="line">        <span class="comment">//     printStack(&quot;getBytes()&quot;);</span></span><br><span class="line">        <span class="comment">// &#125;</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>根据堆栈，定位到 md5_crypt 函数. frida hook 该函数.</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Script loaded&quot;</span>);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="title class_">Java</span>.<span class="title function_">perform</span>(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="title class_">CryptoHelper</span> = <span class="title class_">Java</span>.<span class="title function_">use</span>(<span class="string">&quot;com.xxxxx.safeboxlib.CryptoHelper&quot;</span>);</span><br><span class="line">    <span class="keyword">let</span> <span class="title class_">StringCls</span> = <span class="title class_">Java</span>.<span class="title function_">use</span>(<span class="string">&quot;java.lang.String&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">function</span> <span class="title function_">bytesToString</span>(<span class="params">bytes</span>) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="title class_">StringCls</span>.$new(bytes);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;[decode error]&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">function</span> <span class="title function_">bytesToHex</span>(<span class="params">bytes</span>) &#123;</span><br><span class="line">        <span class="keyword">let</span> result = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; bytes.<span class="property">length</span>; i++) &#123;</span><br><span class="line">            <span class="keyword">let</span> b = (bytes[i] &amp; <span class="number">0xff</span>).<span class="title function_">toString</span>(<span class="number">16</span>);</span><br><span class="line">            <span class="keyword">if</span> (b.<span class="property">length</span> == <span class="number">1</span>) b = <span class="string">&quot;0&quot;</span> + b;</span><br><span class="line">            result += b;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// CryptoHelper[&quot;localAESWork4Api&quot;].implementation = function (bArr, i2) &#123;</span></span><br><span class="line">    <span class="comment">//     console.log(`CryptoHelper.localAESWork4Api is called: bArr=$&#123;bArr&#125;, i2=$&#123;i2&#125;`);</span></span><br><span class="line">    <span class="comment">//     console.log(&quot;localAESWork4Api input(str):&quot;, bytesToString(bArr)); console.log(&quot;localAESWork4Api input(hex):&quot;, bytesToHex(bArr));</span></span><br><span class="line">    <span class="comment">//     let result = this[&quot;localAESWork4Api&quot;](bArr, i2);</span></span><br><span class="line">    <span class="comment">//     console.log(`CryptoHelper.localAESWork4Api result=$&#123;result&#125;`);</span></span><br><span class="line">    <span class="comment">//     console.log(&quot;localAESWork4Api output(str):&quot;, bytesToString(result)); console.log(&quot;localAESWork4Api output(hex):&quot;, bytesToHex(result));</span></span><br><span class="line">    <span class="comment">//     return result;</span></span><br><span class="line">    <span class="comment">// &#125;;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// let CryptoHelper = Java.use(&quot;com.xxxxx.safeboxlib.CryptoHelper&quot;);</span></span><br><span class="line">    <span class="title class_">CryptoHelper</span>[<span class="string">&quot;localAESWork&quot;</span>].<span class="property">implementation</span> = <span class="keyword">function</span> (<span class="params">bArr, i2, bArr2</span>) &#123;</span><br><span class="line">        <span class="comment">// console.log(`CryptoHelper.localAESWork is called: bArr=$&#123;bArr&#125;, i2=$&#123;i2&#125;, bArr2=$&#123;bArr2&#125;`);</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`CryptoHelper.localAESWork is called: i2=<span class="subst">$&#123;i2&#125;</span>, `</span>);</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;localAESWork bytesToString(bArr) :&quot;</span>, <span class="title function_">bytesToString</span>(bArr));  <span class="comment">//console.log(&quot;localAESWork input(hex):&quot;, bytesToHex(bArr));</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;localAESWork bytesToHex(bArr) :&quot;</span>, <span class="title function_">bytesToHex</span>(bArr));  <span class="comment">//console.log(&quot;localAESWork input(hex):&quot;, bytesToHex(bArr));</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;localAESWork bytesToString(bArr2) :&quot;</span>, <span class="title function_">bytesToString</span>(bArr2));  <span class="comment">//console.log(&quot;localAESWork input(hex):&quot;, bytesToHex(bArr));</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;localAESWork bytesToHex(bArr2) :&quot;</span>, <span class="title function_">bytesToHex</span>(bArr2));  <span class="comment">//console.log(&quot;localAESWork input(hex):&quot;, bytesToHex(bArr));</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">let</span> result = <span class="variable language_">this</span>[<span class="string">&quot;localAESWork&quot;</span>](bArr, i2, bArr2);</span><br><span class="line">        <span class="comment">// console.log(`CryptoHelper.localAESWork result=$&#123;result&#125;`);</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;localAESWork output(str):&quot;</span>, <span class="title function_">bytesToString</span>(result));</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;localAESWork output(hex):&quot;</span>, <span class="title function_">bytesToHex</span>(result));</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// let CryptoHelper = Java.use(&quot;com.xxxxx.safeboxlib.CryptoHelper&quot;);</span></span><br><span class="line">    <span class="comment">// CryptoHelper[&quot;c&quot;].implementation = function (str) &#123;</span></span><br><span class="line">    <span class="comment">//     console.log(`CryptoHelper.c is called: str=$&#123;str&#125;`);</span></span><br><span class="line">    <span class="comment">//     let result = this[&quot;c&quot;](str);</span></span><br><span class="line">    <span class="comment">//     console.log(`CryptoHelper.c result=$&#123;result&#125;`);</span></span><br><span class="line">    <span class="comment">//     return result;</span></span><br><span class="line">    <span class="comment">// &#125;;</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    <span class="comment">// let StubApp = Java.use(&quot;com.stub.StubApp&quot;);</span></span><br><span class="line">    <span class="comment">// var res = StubApp.getString2(&quot;21888&quot;)</span></span><br><span class="line">    <span class="comment">// console.log(&quot;StubApp res is &quot;, res);</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// let CryptoHelper = Java.use(&quot;com.xxxxx.safeboxlib.CryptoHelper&quot;);</span></span><br><span class="line">    <span class="title class_">CryptoHelper</span>[<span class="string">&quot;md5_crypt&quot;</span>].<span class="property">implementation</span> = <span class="keyword">function</span> (<span class="params">bArr, i2, bArr2</span>) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`CryptoHelper.md5_crypt is called: i2=<span class="subst">$&#123;i2&#125;</span>, `</span>);</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;md5_crypt bytesToString(bArr) :&quot;</span>, <span class="title function_">bytesToString</span>(bArr));  <span class="comment">//console.log(&quot;localAESWork input(hex):&quot;, bytesToHex(bArr));</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;md5_crypt bytesToHex(bArr) :&quot;</span>, <span class="title function_">bytesToHex</span>(bArr));  <span class="comment">//console.log(&quot;localAESWork input(hex):&quot;, bytesToHex(bArr));</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;md5_crypt bytesToString(bArr2) :&quot;</span>, <span class="title function_">bytesToString</span>(bArr2));  <span class="comment">//console.log(&quot;localAESWork input(hex):&quot;, bytesToHex(bArr));</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;md5_crypt bytesToHex(bArr2) :&quot;</span>, <span class="title function_">bytesToHex</span>(bArr2));  <span class="comment">//console.log(&quot;localAESWork input(hex):&quot;, bytesToHex(bArr));</span></span><br><span class="line">        <span class="keyword">let</span> result = <span class="variable language_">this</span>[<span class="string">&quot;md5_crypt&quot;</span>](bArr, i2, bArr2);</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;md5_crypt output(str):&quot;</span>, <span class="title function_">bytesToString</span>(result));</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;md5_crypt output(hex):&quot;</span>, <span class="title function_">bytesToHex</span>(result));</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>hook 结果如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">localAESWork bytesToString(bArr2) : ��o�_��ug�� ��ŖI    �P�Wbr�l|a�4;</span><br><span class="line">localAESWork bytesToHex(bArr2) : fdc66fb15f838677abfc20c8d5c5964909fa50da57621072a76c7c61ae343b</span><br><span class="line">localAESWork output(str): &#123;&quot;lsopName&quot;:&quot;xxxxxxx&quot;,&quot;mobile&quot;:&quot;&quot;,&quot;deptId&quot;:&quot;&quot;,&quot;appversion&quot;:&quot;5395&quot;,&quot;packageName&quot;:&quot;com.lucky.luckyclient&quot;,&quot;version&quot;:&quot;5.3.95&quot;,&quot;deviceId&quot;:&quot;xxxxxxx-b7a5-4a7f-xxxx-xxxxxxxxx&quot;,&quot;userId&quot;:&quot;&quot;,&quot;platform&quot;:&quot;android&quot;&#125;</span><br><span class="line">localAESWork output(hex): 7b226c736f704e616d652235636b79636c69656e74616e64726f6964222c226d6f62696c65223a22222c22646570744964223a22222c2261707076657273696f6e223a2235333935222c227061636b6167654e616d65223a22636f6d2e6c75636b792e6c75636b79636c69656e74222c2276657273696f6e223a22352e332e3935222c226465766963654964223a2264623565346262352d623761352d346137662d626361302d316630383130663566346462222c22757365724964223a22222c22706c6174666f726d223a22616e64726f6964227d</span><br><span class="line">CryptoHelper.localAESWork is called: i2=2,</span><br><span class="line">localAESWork bytesToString(bArr) : &#123;&quot;deptId&quot;:&quot;&quot;,&quot;positionCode&quot;:&quot;F101&quot;,&quot;appversion&quot;:&quot;5395&quot;,&quot;cityId&quot;:&quot;0&quot;&#125;</span><br><span class="line">localAESWork bytesToHex(bArr) : 7b22646570744964223a222f736974696f6e436f6465223a2246313031222c2261707076657273696f6e223a2235333935222c22636974794964223a2230227d</span><br><span class="line">localAESWork bytesToString(bArr2) : ��o�_��ug�� ��ŖI    �P�Wbr�l|a�4;</span><br><span class="line">localAESWork bytesToHex(bArr2) : fdc66fb15f83867567abfc20c8d5c5964909fa50da57621072a76c7c61ae343b</span><br><span class="line">localAESWork output(str): &gt;�uA8�wq�f6�c�OU��p���X8���B�Y0�&#125;1��4�8��`��o���ߴ:ݠ�&lt;* Zˠ�j�]+:z���$�� MOv</span><br><span class="line">localAESWork output(hex): 3ec8754138b17771a866369d63e04f55b1dc70bc9c9b5838ba8ad242e05930ca7d31d8e0349438ff916015f69f6ffec8c7dfb43adda0f2b83c172a205acba0e46a965d2b3a7af9b9cf24a4e1204d4f76</span><br><span class="line">CryptoHelper.md5_crypt is called: i2=1,</span><br><span class="line">md5_crypt bytesToString(bArr) : cid=210101;q=Psh1QTixd3GoZjadY-</span><br><span class="line">md5_crypt bytesToHex(bArr) : 6369643d3231303130313b713d5073683151546978476f5a6a6164592d425056624863634c79636d316734756f72535175425a4d4d70394d646a674e4a51345f35466746666166625f374978392d304f7432673872673846796f6757737567354771575853733665766d357a79536b3453424e5433593d3b743d313737373337303232333938323b7569643d32396464363634352d626230362d346133382d396665302d32653433326264313066396231373737333536363235343439</span><br><span class="line">md5_crypt bytesToString(bArr2) : ��o�_��ug�� ��ŖI       �P�Wbr�l|a�4;</span><br><span class="line">md5_crypt bytesToHex(bArr2) : fdc66fb15f83867567abfc20c5964909fa50da57621072a76c7c61ae343b</span><br><span class="line">md5_crypt output(str): 921726219197044498301375182129635621</span><br><span class="line">md5_crypt output(hex): 393231373236323139313937303434343936333031333735313832313239363335363231</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 先 localAESWork 再 md5_crypt, localAESWork 的结果会参数到 md5_crypt 的计算.<br>CryptoHelper.md5_crypt is called: i2&#x3D;1 可以看到 i2 &#x3D; 1 这点跟 localAESWork 的 2 是不一样的.</p>
+<p>ida 打开. 进入 jni_onload 函数。<br><img src="/images/20260429/img.png" alt="img_11"></p>
+<p>进入 off_4BCE0， 可以看到是个结构体, 里面存放的是 java函数名, 方法签名, native层绑定的 jni 函数.</p>
+<p><img src="/images/20260429/img_1.png" alt="img_11"></p>
+<p>进入 android_native_md5 函数看看，可以看到, 有大面积的 ollvm .</p>
+<p><img src="/images/20260429/img_3.png" alt="img_11"></p>
+<p>将整个函数丢给 chatgpt 和 gemini，这两个我喜欢混着用。 但是最近我发现 claude code 真的非常强大. 例如分析某个函数时, chatgpt 和 gemini 还在用非常含糊的语言表达时.<br>claude code 会用非常肯定语气告诉你. 并且十分靠谱， 这一点是我觉得 cc 远比 gpt 和 gemini 好用的地方</p>
+<p>放个 cc 的回答.<br><img src="/images/20260429/img_4.png" alt="img_11"></p>
+<p>AI 告诉我们</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2026/03/23/rock5b-frida-%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/" rel="next" title="rock5b frida 使用记录">
+                <i class="fa fa-chevron-left"></i> rock5b frida 使用记录
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">27</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BA%94%E7%94%A8"><span class="nav-number">1.</span> <span class="nav-text">应用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8A%93%E5%8C%85"><span class="nav-number">2.</span> <span class="nav-text">抓包</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%8D%E7%BC%96%E8%AF%91"><span class="nav-number">3.</span> <span class="nav-text">反编译.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%84%B1%E5%A3%B3"><span class="nav-number">4.</span> <span class="nav-text">脱壳</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chilly</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

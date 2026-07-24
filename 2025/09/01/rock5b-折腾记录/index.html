@@ -97,7 +97,7 @@
 <meta property="og:image" content="http://example.com/images/2025_0702/img_9.png">
 <meta property="og:image" content="http://example.com/images/2025_0702/img_10.png">
 <meta property="article:published_time" content="2025-09-01T03:43:15.000Z">
-<meta property="article:modified_time" content="2025-10-31T10:51:30.786Z">
+<meta property="article:modified_time" content="2026-03-23T02:38:23.522Z">
 <meta property="article:author" content="chilly">
 <meta property="article:tag" content="Python, 爬虫, 逆向">
 <meta name="twitter:card" content="summary">
@@ -382,6 +382,40 @@
 <p><img src="/images/2025_0702/img_10.png" alt="img_11"></p>
 <p>20250928<br>烧录系统后，SD卡内存变小的解决<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/u010994456/article/details/117119317?spm=1001.2101.3001.6650.15&utm_medium=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~Rate-15-117119317-blog-145263778.235%5Ev43%5Epc_blog_bottom_relevance_base5&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~Rate-15-117119317-blog-145263778.235%5Ev43%5Epc_blog_bottom_relevance_base5&utm_relevant_index=22">https://blog.csdn.net/u010994456/article/details/117119317?spm=1001.2101.3001.6650.15&amp;utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-15-117119317-blog-145263778.235%5Ev43%5Epc_blog_bottom_relevance_base5&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-15-117119317-blog-145263778.235%5Ev43%5Epc_blog_bottom_relevance_base5&amp;utm_relevant_index=22</a></p>
 <p>20250929<br>通过ssh 远程链接， 刷的radxa 的官方镜像, 系统长时间不用<br>会返回<br>Broadcast message from gdm@rockpi-4cplus on tty1 (Sun 2025-01-19 10:19:10 UTC):<br>The system will suspend now!</p>
+<p>20260323 更新<br>我用一根其他的type c 的线插上 rock5b+， 发现只亮绿灯， 换上小米线后亮蓝色灯。 看来还是要充电头和充电线过关才行.</p>
+<p>给出目前我在用的 rock5b+ 让风扇转起来脚本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment"># smart_fan_control.sh</span></span><br><span class="line"></span><br><span class="line">TEMP_THRESHOLD=30000  <span class="comment"># 30度（注意：通常是毫摄氏度）</span></span><br><span class="line">FAN_ON_STATE=4</span><br><span class="line">FAN_OFF_STATE=0</span><br><span class="line">CHECK_INTERVAL=1</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;智能风扇温度控制启动&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;温度阈值: 30°C&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;检查间隔: <span class="variable">$&#123;CHECK_INTERVAL&#125;</span>秒&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;按 Ctrl+C 停止&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> <span class="literal">true</span>; <span class="keyword">do</span></span><br><span class="line">    <span class="comment"># 获取当前温度（尝试不同的温度传感器）</span></span><br><span class="line">    CURRENT_TEMP=<span class="string">&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 尝试常见的温度传感器路径</span></span><br><span class="line">    <span class="keyword">for</span> temp_file <span class="keyword">in</span> /sys/class/thermal/thermal_zone*/temp; <span class="keyword">do</span></span><br><span class="line">        <span class="keyword">if</span> [ -f <span class="string">&quot;<span class="variable">$temp_file</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">            temp=$(<span class="built_in">cat</span> <span class="string">&quot;<span class="variable">$temp_file</span>&quot;</span>)</span><br><span class="line">            <span class="keyword">if</span> [ ! -z <span class="string">&quot;<span class="variable">$temp</span>&quot;</span> ] &amp;&amp; [ <span class="string">&quot;<span class="variable">$temp</span>&quot;</span> -gt 0 ]; <span class="keyword">then</span></span><br><span class="line">                CURRENT_TEMP=<span class="variable">$temp</span></span><br><span class="line">                <span class="built_in">break</span></span><br><span class="line">            <span class="keyword">fi</span></span><br><span class="line">        <span class="keyword">fi</span></span><br><span class="line">    <span class="keyword">done</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 如果没找到温度文件，使用 sensors 命令</span></span><br><span class="line">    <span class="keyword">if</span> [ -z <span class="string">&quot;<span class="variable">$CURRENT_TEMP</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">        CURRENT_TEMP=$(sensors 2&gt;/dev/null | grep -E <span class="string">&quot;Core 0|Package id 0|temp1&quot;</span> | <span class="built_in">head</span> -1 | awk <span class="string">&#x27;&#123;print $3&#125;&#x27;</span> | sed <span class="string">&#x27;s/[+°C]//g&#x27;</span> | awk -F. <span class="string">&#x27;&#123;print $1&#125;&#x27;</span>)</span><br><span class="line">        <span class="comment"># 转换为毫摄氏度</span></span><br><span class="line">        <span class="keyword">if</span> [ ! -z <span class="string">&quot;<span class="variable">$CURRENT_TEMP</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">            CURRENT_TEMP=$((CURRENT_TEMP * <span class="number">1000</span>))</span><br><span class="line">        <span class="keyword">fi</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 转换为摄氏度显示</span></span><br><span class="line">    <span class="keyword">if</span> [ ! -z <span class="string">&quot;<span class="variable">$CURRENT_TEMP</span>&quot;</span> ] &amp;&amp; [ <span class="string">&quot;<span class="variable">$CURRENT_TEMP</span>&quot;</span> -gt 1000 ]; <span class="keyword">then</span></span><br><span class="line">        TEMP_C=$((CURRENT_TEMP / <span class="number">1000</span>))</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        TEMP_C=<span class="variable">$CURRENT_TEMP</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 温度控制逻辑</span></span><br><span class="line">    <span class="keyword">if</span> [ ! -z <span class="string">&quot;<span class="variable">$CURRENT_TEMP</span>&quot;</span> ] &amp;&amp; [ <span class="string">&quot;<span class="variable">$CURRENT_TEMP</span>&quot;</span> -gt <span class="variable">$TEMP_THRESHOLD</span> ]; <span class="keyword">then</span></span><br><span class="line">        <span class="comment"># 温度超过阈值，开启风扇</span></span><br><span class="line">        <span class="built_in">echo</span> <span class="variable">$FAN_ON_STATE</span> | <span class="built_in">sudo</span> <span class="built_in">tee</span> /sys/class/thermal/cooling_device4/cur_state &gt; /dev/null</span><br><span class="line">        FAN_STATE=<span class="string">&quot;开启&quot;</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="comment"># 温度低于阈值，关闭风扇</span></span><br><span class="line">        <span class="built_in">echo</span> <span class="variable">$FAN_OFF_STATE</span> | <span class="built_in">sudo</span> <span class="built_in">tee</span> /sys/class/thermal/cooling_device4/cur_state &gt; /dev/null</span><br><span class="line">        FAN_STATE=<span class="string">&quot;关闭&quot;</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 显示状态</span></span><br><span class="line">    clear</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;=== 智能风扇控制 ===&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;当前温度: <span class="variable">$&#123;TEMP_C&#125;</span>°C&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;风扇状态: <span class="variable">$&#123;FAN_STATE&#125;</span>&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;阈值: 30°C&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;下次检查: <span class="variable">$&#123;CHECK_INTERVAL&#125;</span>秒后&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;按 Ctrl+C 停止&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">sleep</span> <span class="variable">$CHECK_INTERVAL</span></span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       
     </div>
@@ -493,7 +527,7 @@
               
                 <a href="/archives/%7C%7C%20archive">
               
-                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-count">27</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

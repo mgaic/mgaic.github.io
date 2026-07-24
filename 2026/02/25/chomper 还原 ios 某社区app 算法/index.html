@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="mgaic" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="春节回来，发现我的 iphone 6plus 关机了， 我的ios 系统是 15.8.5， 采用的是 dopamine 越狱, 属于无根越狱， 每次重启就需要重新越狱。所以特别坑。 当我充好电，打开手机，点击 dopamine 发现弹出 dopamine 不可用， 并且我手机桌面上的 sileo 也不见了.  sileo 是dopamine 越狱后的一个包管理平台. 然后我用爱思助手重新越狱，发现">
+<meta property="og:type" content="article">
+<meta property="og:title" content="chomper 还原 ios 某社区app 算法">
+<meta property="og:url" content="http://example.com/2026/02/25/chomper%20%E8%BF%98%E5%8E%9F%20ios%20%E6%9F%90%E7%A4%BE%E5%8C%BAapp%20%E7%AE%97%E6%B3%95/index.html">
+<meta property="og:site_name" content="mgaic">
+<meta property="og:description" content="春节回来，发现我的 iphone 6plus 关机了， 我的ios 系统是 15.8.5， 采用的是 dopamine 越狱, 属于无根越狱， 每次重启就需要重新越狱。所以特别坑。 当我充好电，打开手机，点击 dopamine 发现弹出 dopamine 不可用， 并且我手机桌面上的 sileo 也不见了.  sileo 是dopamine 越狱后的一个包管理平台. 然后我用爱思助手重新越狱，发现">
+<meta property="og:locale">
+<meta property="og:image" content="http://example.com/images/20260224/img_8.png">
+<meta property="og:image" content="http://example.com/images/20260224/img_14.png">
+<meta property="og:image" content="http://example.com/images/20260224/img_12.png">
+<meta property="og:image" content="http://example.com/images/20260224/img_13.png">
+<meta property="og:image" content="http://example.com/images/20260224/img_15.png">
+<meta property="og:image" content="http://example.com/images/20260224/img_16.png">
+<meta property="article:published_time" content="2026-02-25T10:50:22.000Z">
+<meta property="article:modified_time" content="2026-03-19T06:42:35.655Z">
+<meta property="article:author" content="chilly">
+<meta property="article:tag" content="Python, 爬虫, 逆向">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/20260224/img_8.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://example.com/2026/02/25/chomper 还原 ios 某社区app 算法/"/>
+
+
+
+
+
+  <title>chomper 还原 ios 某社区app 算法 | mgaic</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">mgaic</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">爱错</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/02/25/chomper%20%E8%BF%98%E5%8E%9F%20ios%20%E6%9F%90%E7%A4%BE%E5%8C%BAapp%20%E7%AE%97%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mgaic">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">chomper 还原 ios 某社区app 算法</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2026-02-25T18:50:22+08:00">
+                2026-02-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>春节回来，发现我的 iphone 6plus 关机了， 我的ios 系统是 15.8.5， 采用的是 dopamine 越狱, 属于无根越狱， 每次重启就需要重新越狱。所以特别坑。</p>
+<p>当我充好电，打开手机，点击 dopamine 发现弹出 dopamine 不可用， 并且我手机桌面上的 sileo 也不见了.  sileo 是dopamine 越狱后的一个包管理平台.</p>
+<p>然后我用爱思助手重新越狱，发现失败了，跟之前是一个情况， 于是我想到之前我的手机里装了巨魔, 我直接通过巨魔来安装 dopamine.ipa. 于是打开巨魔，选择 install from url,<br>输入 <a target="_blank" rel="noopener" href="https://github.com/opa334/Dopamine/releases/download/2.4.7/Dopamine.ipa">https://github.com/opa334/Dopamine/releases/download/2.4.7/Dopamine.ipa</a>.<br>这个安装包在 <a target="_blank" rel="noopener" href="https://github.com/opa334/Dopamine/releases/tag/2.4.7">https://github.com/opa334/Dopamine/releases/tag/2.4.7</a></p>
+<p>安装好后，打开 dopamine, 点击越狱, 过程全自动, 等待一段时间后，会自动重启, 重启后桌面出现了 sileo 和 dopamine, 并且进入 sileo 后， 之前装的 ssh 还有各种插件都还可以正常使用. 所以这里记录一下</p>
+<p>当手机意外重启后，或者没电重启后, 可以直接通过巨魔来安装 dopamine.ipa. 并且之前的所以数据都还在， 并且还不用重装.</p>
+<p>或者也可以在windows 上把dopamine.ipa 下载好, 然后打开爱思助手，将ipa 拖到这个手机目录下</p>
+<p><img src="/images/20260224/img_8.png" alt="img.png"></p>
+<p>然后手机上装个 filza app，在 &#x2F;var&#x2F;mobile&#x2F;Media&#x2F;Downloads 目录下就可以找到从爱思助手上拖入的文件.</p>
+<p>于是抓包. 结果如下, 主要就是这个 -96参数</p>
+<p><img src="/images/20260224/img_14.png" alt="img.png"></p>
+<p>因为之前还原过安卓端的算法, 知道这是一个魔改的白盒 AES 的算法. 并且结果是标准的base64. 所以我们直接 hook base64 看看</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/var/jb/usr/sbin/frida-server -l 0.0.0.0:6666  # 启动 frida-server 监听 6666 端口</span><br><span class="line">/home/chilly/xxx/ios_frida_env/bin/frida-trace -H 172.31.101.83:6666 7885 -m &quot;-[NSData base64EncodedStringWithOptions:]&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>7885 是pid,<br>然后将这段代码贴进 handles 中，因为结果特别多，所以我们只过滤需要的信息. 并且打印堆栈.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    onEnter(log, args, state) &#123;</span><br><span class="line">      this.self = args[0];</span><br><span class="line">    &#125;,</span><br><span class="line">    onLeave(log, retval, state) &#123;</span><br><span class="line">      var before = ObjC.classes.NSString.alloc().initWithData_encoding_(this.self, 4);</span><br><span class="line">      var after = new ObjC.Object(retval);</span><br><span class="line"></span><br><span class="line">      if(after.toString().indexOf(&quot;Wrsw9oPOU3ScR35Ma5&quot;)&gt;=0)&#123;</span><br><span class="line">          log(`-[NSData base64EncodedStringWithOptions:]before=$&#123;before&#125;=`);</span><br><span class="line">          log(`-[NSData base64EncodedStringWithOptions:]after=$&#123;after&#125;=`);</span><br><span class="line">          log(Thread.backtrace(this.context, Backtracer.ACCURATE) .map(DebugSymbol.fromAddress).join(&#x27;\n&#x27;));</span><br><span class="line">      &#125;</span><br><span class="line">      // if(after.toString().length&gt;=64 &amp;&amp; after.toString().length &lt;= 67 )&#123;</span><br><span class="line">      //   console.log(Thread.backtrace(this.context, Backtracer.ACCURATE) .map(DebugSymbol.fromAddress).join(&#x27;\n&#x27;));</span><br><span class="line">      // &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后继续 hook</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/home/chilly/xxxx/ios_frida_env/bin/frida-trace -H 172.31.101.83:6666 2092 -m &quot;-[NSData base64EncodedStringWithOptions:]&quot;</span><br></pre></td></tr></table></figure>
+
+<p>结果如下<br><img src="/images/20260224/img_12.png" alt="img.png"></p>
+<p>可以看到调用堆栈, 上层调用了 encryptDataBase64String 函数, 我们用 frida hook 一下 encryptDataBase64String 这个函数. 如下给出 hook 代码</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">function hook() &#123;</span><br><span class="line">    if (!ObjC.available) &#123;</span><br><span class="line">        console.log(&quot;ObjC not available&quot;);</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    var cls = ObjC.classes.ZHWhiteBoxEncryptTool;</span><br><span class="line">    if (!cls) &#123;</span><br><span class="line">        console.log(&quot;ZHWhiteBoxEncryptTool not found&quot;);</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    var method = cls[&quot;+ encryptDataBase64String:&quot;];</span><br><span class="line"></span><br><span class="line">    Interceptor.attach(method.implementation, &#123;</span><br><span class="line">        onEnter: function (args) &#123;</span><br><span class="line">            this.self = new ObjC.Object(args[0]);</span><br><span class="line">            // console.log(&quot;cmd:&quot;, ObjC.selectorAsString(args[1]));</span><br><span class="line"></span><br><span class="line">            this.arg = new ObjC.Object(args[2]);</span><br><span class="line"></span><br><span class="line">            console.log(&quot;\n========== encryptDataBase64String ENTER ==========&quot;);</span><br><span class="line">            console.log(&quot;self:&quot;, this.self.toString());</span><br><span class="line"></span><br><span class="line">            try &#123;</span><br><span class="line">                console.log(&quot;arg:&quot;, this.arg.toString());</span><br><span class="line">            &#125; catch (e) &#123;</span><br><span class="line">                console.log(&quot;arg raw:&quot;, args[2]);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            try &#123;</span><br><span class="line">                console.log(&quot;arg class:&quot;, this.arg.$className);</span><br><span class="line">                if (this.arg.$className === &quot;NSData&quot;) &#123;</span><br><span class="line">                    var bytes = Memory.readByteArray(this.arg.bytes(), this.arg.length());</span><br><span class="line">                    console.log(&quot;arg bytes:&quot;, hexdump(bytes, &#123; length: 64 &#125;));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; catch (e) &#123;&#125;</span><br><span class="line">        &#125;,</span><br><span class="line"></span><br><span class="line">        onLeave: function (retval) &#123;</span><br><span class="line">            console.log(&quot;---------- encryptDataBase64String LEAVE ----------&quot;);</span><br><span class="line"></span><br><span class="line">            try &#123;</span><br><span class="line">                var ret = new ObjC.Object(retval);</span><br><span class="line">                console.log(&quot;ret:&quot;, ret.toString());</span><br><span class="line">                console.log(&quot;ret class:&quot;, ret.$className);</span><br><span class="line"></span><br><span class="line">                if (ret.$className === &quot;NSData&quot;) &#123;</span><br><span class="line">                    var bytes = Memory.readByteArray(ret.bytes(), ret.length());</span><br><span class="line">                    console.log(&quot;ret bytes:&quot;, hexdump(bytes, &#123; length: 64 &#125;));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; catch (e) &#123;</span><br><span class="line">                console.log(&quot;ret raw:&quot;, retval);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            console.log(&quot;=================================================\n&quot;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    console.log(&quot;[+] Hooked +[ZHWhiteBoxEncryptTool encryptDataBase64String:]&quot;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">setImmediate(hook);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/home/chilly/zhipu/ios_frida_env/bin/frida -H 172.31.101.83:6666 -n osxxxunixxxxxRelexxx -l hook_encryptDataBase64String.js</span><br></pre></td></tr></table></figure>
+
+<p>结果如下<br><img src="/images/20260224/img_13.png" alt="img.png"></p>
+<p>可以看到入参是 32 字节, 这让我想到了安卓, 入参也是 32 字节。我验证了一下, 跟android 一样, 这个入参就是url, headers 中几个字段拼接起来做标准md5 生成的.</p>
+<p>要注意 0x64626137, 转成hex 是 dba7 也就是md5 的32字符的前4个字符.</p>
+<p>那主动rpc call 调用一下算法看看</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">if (ObjC.available) &#123;</span><br><span class="line"></span><br><span class="line">    var md5 = &quot;dba7f8100a5ef95d623ec360e8415ddd&quot;;</span><br><span class="line"></span><br><span class="line">    // 1. JS -&gt; NSString</span><br><span class="line">    var nsstr = ObjC.classes.NSString.stringWithString_(md5);</span><br><span class="line"></span><br><span class="line">    // 2. NSString -&gt; NSData (UTF8 = 4)</span><br><span class="line">    var data = nsstr.dataUsingEncoding_(4);</span><br><span class="line"></span><br><span class="line">    console.log(&quot;[*] input:&quot;, md5);</span><br><span class="line">    console.log(&quot;[*] data len:&quot;, data.length());</span><br><span class="line"></span><br><span class="line">    // 3. call 类名已脱敏</span><br><span class="line">    var cls = ObjC.classes.XXXXXXXEncryptTool;  </span><br><span class="line">    var ret = cls.encryptDataBase64String_(data);</span><br><span class="line"></span><br><span class="line">    // 4. result</span><br><span class="line">    console.log(&quot;[+] output:&quot;, ret.toString());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>结果如下<br><img src="/images/20260224/img_15.png" alt="img.png"></p>
+<p>可以看到 当入参是 md5, -96的结果已经出来了. 可以 rpc 调用算法了.</p>
+<p>我们这里试试看 chomper 还原该算法. 这里我直接给出代码, 部分已脱敏</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">import os</span><br><span class="line"></span><br><span class="line">from chomper import Chomper</span><br><span class="line">from chomper.const import ARCH_ARM64, OS_IOS</span><br><span class="line">from chomper.objc import ObjcRuntime</span><br><span class="line"></span><br><span class="line">base_path = os.path.abspath(os.path.dirname(__file__))</span><br><span class="line"></span><br><span class="line">rootfs_path = os.path.join(base_path, &quot;../../rootfs/ios&quot;)</span><br><span class="line">module_path = os.path.join(base_path, &quot;../../examples/binaries/ios/ios_10_86_0/xxxxxxxxxx&quot;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def main():</span><br><span class="line">    if not os.path.exists(module_path):</span><br><span class="line">        print(</span><br><span class="line">            &quot;Binary doesn&#x27;t exist, please download &quot;</span><br><span class="line">            &quot;from &#x27;https://sourceforge.net/projects/chomper-emu/files/&#x27;&quot;</span><br><span class="line">        )</span><br><span class="line">        return</span><br><span class="line"></span><br><span class="line">    emu = Chomper(</span><br><span class="line">        arch=ARCH_ARM64,</span><br><span class="line">        os_type=OS_IOS,</span><br><span class="line">        rootfs_path=rootfs_path,</span><br><span class="line">    )</span><br><span class="line">    objc = ObjcRuntime(emu)</span><br><span class="line"></span><br><span class="line">    emu.load_module(module_path)</span><br><span class="line"></span><br><span class="line">    white_box_encrypt_tool_class = objc.find_class(&quot;XXXXXXEncryptTool&quot;)</span><br><span class="line"></span><br><span class="line">    with objc.autorelease_pool():</span><br><span class="line">        data = objc.create_ns_data(b&quot;dba7f8100a5ef95d623ec360e8415ddd&quot;)</span><br><span class="line">        result = white_box_encrypt_tool_class.call_method(&quot;encryptDataBase64String:&quot;, data)</span><br><span class="line">        result_str = emu.read_string(objc.msg_send(result, &quot;UTF8String&quot;))</span><br><span class="line">        emu.logger.info(&quot;+[XXXXXXEncryptTool encryptDataBase64String:] result: %s&quot;, result_str)</span><br><span class="line"></span><br><span class="line">if __name__ == &quot;__main__&quot;:</span><br><span class="line">    main()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>看看 chomper 跑出的结果</p>
+<p><img src="/images/20260224/img_16.png" alt="img.png"></p>
+<p>跟抓包结果完全一致。 这是最理想的, 因为当输入固定，输出也是固定的，算法内部没有时间戳，随机数参与计算. 这样就很好验证算法结果。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2026/02/24/%E6%9F%90%E6%8A%95%E5%B1%8F%E8%BD%AF%E4%BB%B6%E5%8E%BB%E9%99%A4%E5%BC%BA%E5%88%B6%E6%9B%B4%E6%96%B0/" rel="next" title="某投屏软件去除强制更新">
+                <i class="fa fa-chevron-left"></i> 某投屏软件去除强制更新
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2026/03/17/%E6%9F%90%E7%AB%99%E7%82%B9wasm-%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/" rel="prev" title="某站点wasm 逆向分析">
+                某站点wasm 逆向分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">27</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chilly</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
